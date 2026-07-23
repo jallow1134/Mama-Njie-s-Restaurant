@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Menu - Mama Njie's Restaurant</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">Mama Njie's</div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="menu.html" class="active">Menu</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="reservation.html">Reserve</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="menu">
+        <div class="container">
+            <h2>Our Menu</h2>
+            <p class="menu-subtitle">Choose a dish and reserve it with ease.</p>
+            <div id="menu-grid" class="menu-grid"></div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>&copy; 2026 St_ISLA2021</p>
+    </footer>
+
+    <button id="backToTopBtn" class="back-to-top-btn" title="Back to top">
+        <strong>↑</strong>
+    </button>
+
+    <script>
+        const dishes = [
+            {
+                name: 'Jollof Rice',
+                price: 180,
+                description: 'Traditional rice cooked with rich tomato sauce and spices.',
+                category: 'Main Dishes',
+                image: 'jollof.jpg'
+            },
+            {
+                name: "Mama Njie's Special",
+                price: 260,
+                description: 'A signature house favorite prepared with the chef’s special touch.',
+                category: 'Chef Specials',
+                image: 'yassa.jpg'
+            },
+            {
+                name: 'Seafood Okra',
+                price: 260,
+                description: 'Fresh seafood simmered in a rich okra stew.',
+                category: 'Main Dishes',
+                image: 'okra.jpg'
+            },
+            {
+                name: 'Pepper Soup',
+                price: 160,
+                description: 'A comforting pepper soup with a deep, aromatic broth.',
+                category: 'Main Dishes',
+                image: 'peppersoup.jpg'
+            },
+            {
+                name: 'Vegetable Platter',
+                price: 140,
+                description: 'A healthy mix of grilled vegetables and local seasoning.',
+                category: 'Main Dishes',
+                image: 'akara.jpg'
+            },
+            {
+                name: 'Attaya',
+                price: 190,
+                description: 'Sweet and rich rice dessert with caramelized flavors.',
+                category: 'Main Dishes',
+                image: 'attaya.jpg'
+            },
+            {
+                name: 'Benachin',
+                price: 210,
+                description: 'Classic Gambian rice dish with a smoky, savory finish.',
+                category: 'Main Dishes',
+                image: 'benachin.jpg'
+            },
+            {
+                name: 'Caldo',
+                price: 230,
+                description: 'A warm and hearty soup served with local spices.',
+                category: 'Main Dishes',
+                image: 'caldo.jpg'
+            },
+            {
+                name: 'Chewdiw',
+                price: 240,
+                description: 'A favorite fish-based delight packed with flavor.',
+                category: 'Main Dishes',
+                image: 'chewdiw.jpg'
+            },
+            {
+                name: 'Domoda',
+                price: 220,
+                description: 'A rich peanut stew with deeply layered seasoning.',
+                category: 'Main Dishes',
+                image: 'domoda.jpg'
+            },
+            {
+                name: 'Fish Balls',
+                price: 170,
+                description: 'Crisp and savory fish balls with a zesty kick.',
+                category: 'Main Dishes',
+                image: 'fishballs.jpg'
+            },
+            {
+                name: 'Mbahal',
+                price: 250,
+                description: 'A traditional dish served with rich, aromatic sauce.',
+                category: 'Main Dishes',
+                image: 'mbahal.jpg'
+            },
+            {
+                name: 'Moimoi',
+                price: 150,
+                description: 'Steamed bean pudding with a smooth, comforting texture.',
+                category: 'Main Dishes',
+                image: 'moimoi.jpg'
+            },
+            {
+                name: 'Oyster Stew',
+                price: 260,
+                description: 'A flavorful oyster dish prepared with local seasoning.',
+                category: 'Main Dishes',
+                image: 'oyster.jpg'
+            },
+            {
+                name: 'Plasas',
+                price: 180,
+                description: 'A delicious local specialty served fresh and hot.',
+                category: 'Main Dishes',
+                image: 'plasas.jpg'
+            },
+            {
+                name: 'Supakanja',
+                price: 200,
+                description: 'A traditional specialty with bold, warming flavors.',
+                category: 'Main Dishes',
+                image: 'supakanja.jpg'
+            },
+            {
+                name: 'Tapalapa',
+                price: 190,
+                description: 'Freshly prepared local favorite with rich seasoning.',
+                category: 'Main Dishes',
+                image: 'tapalapa.jpg'
+            },
+            {
+                name: 'Yassa',
+                price: 240,
+                description: 'A bright and savory dish with tangy depth.',
+                category: 'Main Dishes',
+                image: 'yassa.jpg'
+            }
+        ];
+
+        function getDishImage(imageName) {
+            const fallback = 'images/jollof.jpg';
+            if (!imageName) return fallback;
+            const cleaned = imageName.trim().toLowerCase();
+            return cleaned.startsWith('images/') ? cleaned : `images/${cleaned}`;
+        }
+
+        function renderMenu() {
+            const grid = document.getElementById('menu-grid');
+            if (!grid) return;
+
+            grid.innerHTML = '';
+            const categories = {};
+
+            dishes.forEach(dish => {
+                const category = dish.category;
+                if (!categories[category]) {
+                    categories[category] = [];
+                }
+                categories[category].push(dish);
+            });
+
+            const preferredOrder = ['Chef Specials', 'Main Dishes'];
+            const orderedCategories = preferredOrder.filter(cat => categories[cat])
+                .concat(Object.keys(categories).filter(cat => !preferredOrder.includes(cat)));
+
+            orderedCategories.forEach(cat => {
+                let columnHTML = `<div class="menu-category"><h3><strong>${cat}</strong></h3><div class="menu-category-grid">`;
+
+                categories[cat].forEach(dish => {
+                    columnHTML += `
+                    <div class="menu-item clickable" onclick="goToReservation('${dish.name.replace(/'/g, "\\'")}')">
+                        <img src="${getDishImage(dish.image)}" alt="${dish.name}" class="menu-image" loading="lazy" onerror="handleImageError(this)">
+                        <div>
+                            <div class="item-header">${dish.name}<span class="price">${dish.price} GMD</span></div>
+                            <p>${dish.description}</p>
+                            <span class="order-btn">Reserve This Dish →</span>
+                        </div>
+                    </div>
+                    `;
+                });
+
+                columnHTML += `</div></div>`;
+                grid.innerHTML += columnHTML;
+            });
+        }
+
+        function goToReservation(dishName) {
+            window.location.href = 'reservation.html?dish=' + encodeURIComponent(dishName);
+        }
+
+        function handleImageError(img) {
+            img.onerror = null;
+            img.src = 'images/jollof.jpg';
+            img.classList.add('image-error');
+            img.alt = `${img.alt} - Image unavailable`;
+        }
+
+        document.addEventListener('DOMContentLoaded', renderMenu);
+    </script>
+    <script src="js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,799 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #0f2438;
+    --accent-color: #ffa500;
+    --light-bg: #243a52;
+}
+
+html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 100%;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.8;
+    color: #f0f0f0;
+    background: #243a52 url('../images/background.jpg') no-repeat center fixed;
+    background-size: cover;
+    background-position: center;
+    background-color: #243a52;
+    background-blend-mode: normal;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+    body {
+        background-attachment: scroll;
+    }
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Navigation Bar */
+.navbar {
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+    margin: 0;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.nav-menu li {
+    display: flex;
+    align-items: center;
+}
+
+.nav-menu a {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    font-size: 1.05rem;
+    font-weight: 500;
+}
+
+.nav-menu a:hover,
+.nav-menu a.active {
+    color: #ffa500;
+    border-bottom: 3px solid #ffa500;
+}
+
+.nav-menu a.active {
+    font-weight: bold;
+}
+
+/* Hero Section - Home: SOLID BLUE */
+.hero {
+    background: #243a52;
+    padding: 4rem 0;
+    text-align: center;
+    border-bottom: 1px solid #1a3a52;
+}
+
+.hero-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    margin: 0;
+    color: #ffa500;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeUp 0.8s ease-out forwards;
+}
+
+.hero p {
+    font-size: 1.3rem;
+    color: #ffffff;
+    margin: 0.5rem 0 0 0;
+    font-weight: 500;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeUp 0.8s ease-out 0.3s forwards;
+}
+
+.hero-buttons {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeUp 0.8s ease-out 0.6s forwards;
+}
+
+@keyframes fadeUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Buttons - FIXED: -webkit first */
+.btn, .btn-link {
+    padding: 0.75rem 2rem;
+    border: none;
+    background: var(--accent-color);
+    color: white;
+    cursor: pointer;
+    font-size: 1.1rem;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.btn:hover, .btn-link:hover {
+    background: #ff8c00;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(255, 165, 0, 0.4);
+}
+
+/* Story Section on Home */
+.story-section {
+    padding: 4rem 0;
+    background: #243a52;
+}
+
+.story-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Meet Mama Njie box */
+.mama-box {
+    background: #1a2f4a;
+    padding: 2rem 2.5rem;
+    border-left: 4px solid #ffa500;
+    margin: 0 auto 2rem;
+    border-radius: 3px;
+    max-width: 800px;
+}
+
+.mama-box h3 {
+    color: #ffa500;
+    font-size: 1.7rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+.mama-box p {
+    color: #ffffff;
+    line-height: 1.8;
+    font-size: 1.05rem;
+}
+
+/* Mama Njie Image */
+.mama-image {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.mama-image img {
+    width: 400px;
+    max-width: 90%;
+    height: auto;
+    border-radius: 5px;
+    border: 2px solid #ffffff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* About Section */
+.about {
+    padding: 4rem 0;
+    background: #243a52 !important;
+}
+
+.about-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem !important;
+    background-color: #243a52 !important;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+.about h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: #ffa500;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+.about p {
+    color: #ffffff;
+    line-height: 1.9;
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    text-align: justify;
+}
+
+.mama-njie-info {
+    background: rgba(255, 165, 0, 0.1) !important;
+    padding: 2rem;
+    border-left: 4px solid #ffa500;
+    margin-top: 2rem;
+    border-radius: 3px;
+}
+
+.mama-njie-info h3 {
+    color: #ffa500;
+    font-size: 1.7rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+/* Menu Section */
+.menu {
+    padding: 3rem 0;
+    background: #243a52;
+    border-bottom: 1px solid #1a3a52;
+}
+
+.menu h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: #ffa500;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.menu-subtitle {
+    text-align: center;
+    color: #d0d0d0;
+    margin-bottom: 3rem;
+    font-size: 1.1rem;
+}
+
+.menu-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.menu-category {
+    background: rgba(15, 36, 56, 0.95);
+    border-radius: 10px;
+    padding: 1rem 1rem 1.25rem;
+}
+
+.menu-category h3 {
+    color: #ffa500;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.menu-category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1rem;
+    justify-items: center;
+}
+
+.menu-item {
+    background: #0f2438;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 360px;
+    min-height: 420px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.menu-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(255, 165, 0, 0.3);
+}
+
+/* FIX: Replaces inline style="cursor: pointer" */
+.menu-item.clickable {
+    cursor: pointer;
+}
+
+.menu-image {
+    width: 100%;
+    height: 220px;
+    min-height: 220px;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    background-color: #1a3a52;
+    flex-shrink: 0;
+}
+
+/* FIX: Replaces inline onerror style="backgroundColor='#f5d4d4'" */
+.menu-image.image-error {
+    background-color: #f5d4d4;
+}
+
+.menu-item > div {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    gap: 0.5rem;
+    color: #ffffff;
+}
+
+.menu-item p {
+    font-size: 0.95rem;
+    color: #f0f0f0;
+    margin: 0;
+    line-height: 1.6;
+    flex-grow: 1;
+}
+
+.price {
+    color: var(--accent-color);
+    font-weight: bold;
+    font-size: 1.1rem;
+    white-space: nowrap;
+}
+
+/* Order button */
+.order-btn {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    background: #ffa500;
+    color: #0f2438;
+    font-weight: bold;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.menu-item:hover .order-btn {
+    background: #ff8c00;
+    transform: translateX(5px);
+}
+
+/* Reservations */
+.reservations {
+    padding: 3rem 0;
+    background: #243a52;
+}
+
+.reservation-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    background-color: #243a52;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+.reservations h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: #ffa500;
+    font-weight: bold;
+}
+
+.reservation-subtitle {
+    text-align: center;
+    color: #ffa500;
+    margin-bottom: 2rem;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.reservation-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.reservation-form input,
+.reservation-form select,
+.reservation-form textarea {
+    padding: 0.75rem;
+    border: 2px solid #ffa500;
+    font-size: 1.05rem;
+    background: #1a3a52;
+    color: #f0f0f0;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    font-family: Arial, sans-serif;
+}
+
+.reservation-form input:focus,
+.reservation-form select:focus,
+.reservation-form textarea:focus {
+    outline: none;
+    border-color: #ff8c00;
+    box-shadow: 0 0 8px rgba(255, 165, 0, 0.4);
+}
+
+/* Dish input */
+#dish {
+    background: #1a2f4a !important;
+    color: #ffa500 !important;
+    font-weight: bold;
+    cursor: default;
+}
+#dish::placeholder {
+    color: #888;
+    font-weight: normal;
+}
+
+/* FIX for JS inline styles */
+#dish.filled {
+    border-color: #ffa500;
+    box-shadow: 0 0 10px rgba(255, 165, 0, 0.6);
+}
+
+/* FIX for screen reader label */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Contact Section - FIXED: -webkit first */
+.contact {
+    padding: 4rem 0;
+    background: #243a52;
+    border-bottom: 1px solid rgba(255, 165, 0, 0.3);
+}
+
+.contact h2 {
+    text-align: center;
+    font-size: 2.8rem;
+    margin-bottom: 3rem;
+    color: #ffa500;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px rgba(255, 165, 0, 0.5);
+}
+
+.contact-info {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.contact-info > div {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 165, 0, 0.3);
+    border-radius: 15px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+.contact-info > div:hover {
+    border-color: #ffa500;
+    box-shadow: 0 0 30px rgba(255, 165, 0, 0.4);
+    transform: translateY(-5px);
+    background: rgba(255, 165, 0, 0.1);
+}
+
+.contact-info h3 {
+    margin-bottom: 0.8rem;
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: #ffa500;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-style: italic;
+    text-shadow: 
+        0 0 10px rgba(255, 165, 0, 0.8),
+        0 0 20px rgba(255, 165, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.contact-info > div:hover h3 {
+    color: #ffcc66;
+    text-shadow: 
+        0 0 15px rgba(255, 204, 102, 1),
+        0 0 30px rgba(255, 165, 0, 0.8);
+    transform: translateY(-3px) scale(1.05);
+}
+
+.contact-info p {
+    color: #ffffff;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    font-weight: 600;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.contact-info a {
+    color: #4fc3f7;
+    text-decoration: none;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(79, 195, 247, 0.6);
+    transition: all 0.3s ease;
+}
+
+.contact-info a:hover {
+    color: #81d4fa;
+    text-shadow: 0 0 15px rgba(129, 212, 250, 1);
+    text-decoration: underline;
+}
+
+/* Footer */
+.footer {
+    background: #243a52 !important;
+    color: white;
+    padding: 1.5rem 0;
+    text-align: center;
+    border-top: 3px solid #ffa500;
+}
+
+/* Back to Top Button */
+.back-to-top-btn {
+    display: none;
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #ffa500, #ff8c00);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 999;
+    box-shadow: 0 4px 15px rgba(255, 165, 0, 0.4);
+    transition: all 0.3s ease;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-to-top-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(255, 165, 0, 0.6);
+}
+
+.back-to-top-btn.show {
+    display: flex;
+}
+
+/* FIX for menu inline styles */
+.loading-text {
+    text-align: center; 
+    grid-column: 1/-1;
+    color: #d0d0d0;
+    font-size: 1.1rem;
+    padding: 2rem 0;
+}
+
+.no-dishes-text {
+    text-align: center; 
+    grid-column: 1/-1; 
+    color: #ff6b6b;
+    font-size: 1.1rem;
+    padding: 2rem 0;
+}
+
+.error-text {
+    text-align: center; 
+    grid-column: 1/-1; 
+    color: #ff6b6b;
+    font-size: 1.1rem;
+    padding: 2rem 0;
+}
+
+/* Success message for reservation form */
+.success-message {
+    background: #4CAF50;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: bold;
+}
+.hidden { display: none; }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    html {
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        background-attachment: scroll;
+    }
+
+    .hero h1 {
+        font-size: 2.2rem;
+    }
+
+    .hero p {
+        font-size: 1.15rem;
+    }
+
+    .menu-grid {
+        grid-template-columns: 1fr;
+        padding: 0 15px;
+    }
+
+    .menu-category-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-info {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .mama-image img {
+        width: 90%;
+        max-width: 350px;
+    }
+
+    .nav-menu {
+        gap: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+    }
+
+    .nav-container {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .nav-menu {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        gap: 0.75rem;
+    }
+
+    .nav-menu a {
+        width: auto;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+
+    .menu-item {
+        max-width: 100%;
+        min-height: 0;
+    }
+
+    .menu-image {
+        height: auto;
+        min-height: 0;
+    }
+
+    /* FIX: Center reservation form on mobile */
+    .reservations {
+        padding: 2rem 1rem;
+    }
+    
+    .reservation-container {
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 2rem 1.2rem;
+        box-sizing: border-box;
+    }
+    
+    .reservation-form input,
+    .reservation-form select,
+    .reservation-form textarea,
+    .btn {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 480px) {
+    html {
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    body {
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .hero h1 {
+        font-size: 1.8rem;
+    }
+
+    .hero p {
+        font-size: 1.05rem;
+    }
+
+    .back-to-top-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
+        bottom: 1.5rem;
+        right: 1.5rem;
+    }
+}

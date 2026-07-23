@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Reserve - Mama Njie's Restaurant</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+      .success-message.hidden { display: none; }
+      .success-message {
+            background: #4ade80;
+            color: #1e293b;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+      .filled { border: 2px solid #4ade80!important; background: #f0fff4; }
+      .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">Mama Njie's</div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="menu.html">Menu</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="reservation.html" class="active">Reserve</a></li> <!-- FIXED: removed 's' -->
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Reservations Section -->
+    <section class="reservations">
+        <div class="container">
+            <div class="reservation-container">
+                <h2>Make a Reservation</h2>
+                <p class="reservation-subtitle">Book your table at Mama Njie's Restaurant</p>
+
+                <form class="reservation-form" id="reservationForm">
+                    <div id="successMsg" class="success-message hidden">Reservation saved! We’ll contact you soon.</div>
+
+                    <input type="text" id="name" placeholder="Full Name" required>
+                    <input type="tel" id="phone" placeholder="Phone Number" required>
+
+                    <input type="text" id="dish" placeholder="Selected Dish" readonly>
+
+                    <label for="time" class="sr-only">Select reservation time</label>
+                    <select id="time" required>
+                        <option value="">Select Time</option>
+                        <option>12:00 PM</option>
+                        <option>1:00 PM</option>
+                        <option>2:00 PM</option>
+                        <option>3:00 PM</option>
+                        <option>7:00 PM</option>
+                        <option>8:00 PM</option>
+                        <option>9:00 PM</option>
+                        <option>10:00 PM</option>
+                    </select>
+
+                    <input type="number" id="guests" placeholder="Number of Guests" min="1" max="20" required>
+
+                    <textarea id="notes" placeholder="Special Requests / Notes" rows="3"></textarea>
+
+                    <button type="submit" class="btn">Confirm Reservation</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 St_ISLA2021</p>
+    </footer>
+
+    <!-- JS: Auto-fill reservation form -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const dishFromURL = urlParams.get('dish');
+        const dishFromStorage = localStorage.getItem('selectedDish');
+        const selectedDish = dishFromURL || dishFromStorage;
+        const dishInput = document.getElementById('dish');
+
+        if (selectedDish && dishInput) {
+            dishInput.value = decodeURIComponent(selectedDish);
+            dishInput.classList.add('filled');
+            localStorage.removeItem('selectedDish');
+        }
+    });
+    </script>
+    <script src="js/script.js"></script>
+</body>
+</html>
