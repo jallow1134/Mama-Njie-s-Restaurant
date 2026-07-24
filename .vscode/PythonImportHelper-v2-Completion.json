@@ -1,0 +1,29 @@
+[
+    {
+        "label": "qrcode",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "qrcode",
+        "description": "qrcode",
+        "detail": "qrcode",
+        "documentation": {}
+    },
+    {
+        "label": "url",
+        "kind": 5,
+        "importPath": "qr",
+        "description": "qr",
+        "peekOfCode": "url = \"https://jallow1134.github.io/Mama-Njie-s-Restaurant\"\nimg = qrcode.make(url)\nimg.save(\"mama-njie-qr.png\")\nprint(\"Done! QR code saved as mama-njie-qr.png\")",
+        "detail": "qr",
+        "documentation": {}
+    },
+    {
+        "label": "img",
+        "kind": 5,
+        "importPath": "qr",
+        "description": "qr",
+        "peekOfCode": "img = qrcode.make(url)\nimg.save(\"mama-njie-qr.png\")\nprint(\"Done! QR code saved as mama-njie-qr.png\")",
+        "detail": "qr",
+        "documentation": {}
+    }
+]
