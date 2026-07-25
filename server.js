@@ -215,108 +215,124 @@ app.get('/logout', (req, res) => {
   return res.status(401).send('Logged out');
 });
 
-app.get('/admin', basicAuth, (req, res) => {
+app.get('/admin', (req, res) => {
+  const key = req.query.key;
+  if (key !== '5169685') {
+    return res.status(401).send('401 Unauthorized');
+  }
+
+  const reservationsPath = path.join(dataDir, 'reservations.json');
+  if (!fs.existsSync(reservationsPath)) {
+    return res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Bookings - Mama Njie's Restaurant</title>
+  <style>
+    body { margin: 0; min-height: 100vh; background: #0f2438; color: #f8fafc; display: flex; align-items: center; justify-content: center; font-family: Arial, sans-serif; }
+    .box { width: min(95vw, 760px); padding: 32px; text-align: center; border-radius: 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); }
+    h1 { color: #ffa500; margin-bottom: 16px; }
+    p { color: #f8fafc; font-size: 1rem; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>No bookings yet</h1>
+    <p>Reservation storage has not been created yet.</p>
+  </div>
+</body>
+</html>`);
+  }
+
+  let reservations = [];
+  try {
+    const raw = fs.readFileSync(reservationsPath, 'utf8');
+    reservations = JSON.parse(raw || '[]');
+  } catch (error) {
+    console.error('Failed to read reservations:', error);
+    return res.status(500).send('Unable to load reservations.');
+  }
+
+  if (!Array.isArray(reservations) || reservations.length === 0) {
+    return res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Bookings - Mama Njie's Restaurant</title>
+  <style>
+    body { margin: 0; min-height: 100vh; background: #0f2438; color: #f8fafc; display: flex; align-items: center; justify-content: center; font-family: Arial, sans-serif; }
+    .box { width: min(95vw, 760px); padding: 32px; text-align: center; border-radius: 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); }
+    h1 { color: #ffa500; margin-bottom: 16px; }
+    p { color: #f8fafc; font-size: 1rem; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>No bookings yet</h1>
+    <p>There are currently no saved reservations.</p>
+  </div>
+</body>
+</html>`);
+  }
+
+  reservations = reservations.slice().reverse();
+
+  const rows = reservations.map(r => {
+    const dateValue = r.date || 'N/A';
+    const notesValue = r.notes ? r.notes.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '—';
+    return `<tr>
+      <td>${r.name || ''}</td>
+      <td>${r.phone || ''}</td>
+      <td>${r.dish || ''}</td>
+      <td>${dateValue}</td>
+      <td>${r.time || ''}</td>
+      <td>${r.guests != null ? r.guests : ''}</td>
+      <td>${notesValue}</td>
+    </tr>`;
+  }).join('');
+
   res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard - Mama Njie's Restaurant</title>
+  <title>Admin Bookings - Mama Njie's Restaurant</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 24px; background: #f8fafc; color: #0f2438; }
-    h1 { margin-bottom: 16px; }
-    .actions { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
-    .actions a, .actions button { background: #0f2438; color: #fff; padding: 10px 16px; border: none; border-radius: 6px; text-decoration: none; cursor: pointer; }
-    .actions button { display: inline-flex; align-items: center; }
-    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-    th, td { padding: 12px 10px; border: 1px solid #cbd5e1; text-align: left; }
-    th { background: #0f2438; color: #fff; }
-    tbody tr:nth-child(odd) { background: #fff; }
-    tbody tr:nth-child(even) { background: #f1f5f9; }
-    .status { margin: 16px 0; color: #334155; }
-    .delete-btn { background: #dc2626; }
-    .message { margin-top: 12px; color: #0f2438; }
+    body { margin: 0; min-height: 100vh; background: #0f2438; color: #f8fafc; font-family: Arial, sans-serif; }
+    .page { width: min(98vw, 1200px); margin: 0 auto; padding: 24px; }
+    h1 { margin-bottom: 16px; color: #ffa500; }
+    .subtitle { color: #e2e8f0; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 14px 16px; border: 1px solid rgba(255,255,255,0.14); }
+    th { background: #ffa500; color: #0f2438; text-align: left; }
+    tbody tr:nth-child(odd) { background: rgba(255,255,255,0.04); }
+    tbody tr:nth-child(even) { background: rgba(255,255,255,0.08); }
+    td { color: #f8fafc; }
   </style>
 </head>
 <body>
-  <h1>Admin Dashboard</h1>
-  <div class="actions">
-    <a href="/logout">Logout</a>
-    <span class="status">Viewing all reservations saved on the site.</span>
+  <div class="page">
+    <h1>Reservation Bookings</h1>
+    <p class="subtitle">Newest bookings appear first.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Dish</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Guests</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
   </div>
-  <div id="message" class="message"></div>
-  <div id="content">Loading reservations...</div>
-  <script>
-    async function loadReservations() {
-      try {
-        const response = await fetch('/api/reservations', { headers: { 'Accept': 'application/json' }});
-        if (!response.ok) {
-          throw new Error('Failed to load reservations');
-        }
-        const data = await response.json();
-        const { reservations } = data;
-
-        if (!reservations.length) {
-          document.getElementById('content').innerHTML = '<p>No reservations yet.</p>';
-          return;
-        }
-
-        const rows = reservations.map(r =>
-          '<tr>' +
-            '<td>' + r.createdAt + '</td>' +
-            '<td>' + r.name + '</td>' +
-            '<td>' + r.email + '</td>' +
-            '<td>' + r.phone + '</td>' +
-            '<td>' + r.dish + '</td>' +
-            '<td>' + r.time + '</td>' +
-            '<td>' + r.guests + '</td>' +
-            '<td>' + (r.notes || '—') + '</td>' +
-            '<td><button class="delete-btn" data-id="' + r.id + '">Delete</button></td>' +
-          '</tr>'
-        ).join('');
-
-        document.getElementById('content').innerHTML =
-          '<table>' +
-            '<thead>' +
-              '<tr>' +
-                '<th>Created</th>' +
-                '<th>Name</th>' +
-                '<th>Email</th>' +
-                '<th>Phone</th>' +
-                '<th>Dish</th>' +
-                '<th>Time</th>' +
-                '<th>Guests</th>' +
-                '<th>Notes</th>' +
-                '<th>Actions</th>' +
-              '</tr>' +
-            '</thead>' +
-            '<tbody>' + rows + '</tbody>' +
-          '</table>';
-
-        document.querySelectorAll('.delete-btn').forEach(button => {
-          button.addEventListener('click', async () => {
-            const id = button.dataset.id;
-            if (!confirm('Delete this reservation?')) return;
-            try {
-              const deleteResponse = await fetch('/api/reservations/' + encodeURIComponent(id), { method: 'DELETE' });
-              if (!deleteResponse.ok) {
-                throw new Error('Delete failed');
-              }
-              document.getElementById('message').textContent = 'Reservation deleted successfully.';
-              loadReservations();
-            } catch (error) {
-              document.getElementById('message').textContent = 'Unable to delete reservation. Please try again.';
-              console.error(error);
-            }
-          });
-        });
-      } catch (error) {
-        document.getElementById('content').innerHTML = '<p>Unable to load reservations. Please refresh the page.</p>';
-        console.error(error);
-      }
-    }
-    loadReservations();
-  </script>
 </body>
 </html>`);
 });
