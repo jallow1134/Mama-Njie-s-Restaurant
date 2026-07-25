@@ -27,6 +27,12 @@ Mama Njie's Restaurant/
 ├── menu.html                  # Food menu and dish details
 ├── contact.html               # Contact details and location
 ├── reservation.html           # Reservation form
+├── server.js                  # Node.js backend API and reservation storage
+├── package.json               # Node dependencies and scripts
+├── package-lock.json          # Installed dependency lockfile
+├── .env                       # Environment variables (optional)
+├── data/
+│   └── reservations.json      # Stored reservation records
 │
 ├── css/
 │   └── styles.css             # Styling, layout, and responsive rules
@@ -86,7 +92,7 @@ This is where people learn what Mama Njie is really about. The restaurant's miss
 Simple and direct. Where the restaurant is, how to reach them, when they're open.
 
 ### 6. **Reservation System That Actually Works**
-An online booking form that doesn't overcomplicate things. Name, email, phone, and time - that's all you need. When customers submit, their reservation details are automatically sent to your WhatsApp so you get instant notification. They just confirm and send through WhatsApp, making the whole process quick and direct.
+An online booking form that doesn't overcomplicate things. Name, phone, date, time, guests, selected dish, and notes are all submitted through a backend API endpoint. The form uses `fetch()` so the page does not reload. Reservations are sent to `https://mama-njie-s-restaurant-7kv7.onrender.com/reserve`, and CORS is enabled in the backend so the frontend can talk to the backend securely.
 
 ### 7. **Design That Feels Right**
 The whole site uses a warm color scheme - dark blue that feels sophisticated but approachable, orange accents that feel alive and energetic. It matches the food. It matches the feeling of walking into a family restaurant.
@@ -170,37 +176,30 @@ Fixed a small but important issue - the WhatsApp link had an incomplete phone nu
 ✓ Ensured all contact methods are working properly
 
 ### Phase 8: Reservation Form Improvements
-I improved the reservation process to make it easier to use and more informative. The form collects name, email, phone, selected dish, date, time, guest count, and notes so the restaurant receives complete booking details.
+I improved the reservation process to make it easier to use and more informative. The form collects name, phone, selected dish, date, time, number of guests, and notes so the restaurant receives complete booking details.
 
 ✓ Kept the date field for accurate reservation scheduling
 ✓ Added fields for number of guests and special requests
 ✓ Ensured the selected dish is prefilled when reserving from the menu
 ✓ Confirmation message appears after submission
 
-### Phase 9: WhatsApp Reservation Integration
-This was a game-changer. The reservation form now opens WhatsApp with the booking details prefilled, making it easy for customers to send a direct reservation request to the restaurant.
+### Phase 9: Backend Reservation API Integration
+This was a key improvement. The reservation form now sends booking data via `fetch()` to a backend endpoint instead of relying on manual messaging. The backend saves reservations and supports CORS so the site and the API can work together cleanly.
 
-✓ Updated the reservation handler to capture all fields including dish, date, time, guests, and notes
-✓ Creates a formatted WhatsApp message with complete booking details
-✓ Opens WhatsApp Web with the message ready to send to +2205169685
-✓ The customer sees a confirmation message before the handoff
-✓ Makes reservations direct, immediate, and easy to complete
+✓ Updated the reservation handler to `_POST_` JSON to the `/reserve` backend endpoint
+✓ Added CORS support in `server.js` so the frontend can talk to the API from localhost or production
+✓ Added a simple root endpoint that returns `Mama Njie Backend is Running` for health checks
+✓ The form now submits without a full page reload and shows success/error feedback
 
 **How It Works:**
-When someone fills out and submits the reservation form, the JavaScript captures their information and creates a nicely formatted message like:
+When someone fills out and submits the reservation form, the JavaScript captures their information and sends it as JSON to the backend using `fetch()`.
 ```
-Hello! I would like to make a reservation at Mama Njie's Restaurant.
-
-Reservation Details:
-- Name: [Customer Name]
-- Email: [Customer Email]
-- Phone: [Customer Phone]
-- Time: [Selected Time]
-
-Thank you!
+POST https://mama-njie-s-restaurant-7kv7.onrender.com/reserve
+{
+  name, phone, dish, date, time, guests, notes
+}
 ```
-
-This message is automatically sent to your WhatsApp so you never miss a reservation request. It's direct, immediate, and the customer can confirm right away through WhatsApp.
+The backend stores the reservation in `data/reservations.json` and responds with a success message.
 
 ---
 
