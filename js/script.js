@@ -77,7 +77,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('Server error');
             }
 
-            alert('Booking received!');
+            const whatsappPhone = '2205169685';
+            const whatsappMessage = encodeURIComponent(
+                `New reservation received!%0A` +
+                `Name: ${reservationData.name}%0A` +
+                `Phone: ${reservationData.phone}%0A` +
+                `Dish: ${reservationData.dish}%0A` +
+                `Time: ${reservationData.time}%0A` +
+                `Guests: ${reservationData.guests}%0A` +
+                `Notes: ${reservationData.notes || 'None'}`
+            );
+            const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${whatsappMessage}`;
+
+            window.open(whatsappUrl, '_blank');
+            alert('Booking received! A WhatsApp message has been prepared for you.');
 
             reservationForm.reset();
             if (dishInput) {

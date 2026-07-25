@@ -92,7 +92,7 @@ This is where people learn what Mama Njie is really about. The restaurant's miss
 Simple and direct. Where the restaurant is, how to reach them, when they're open.
 
 ### 6. **Reservation System That Actually Works**
-An online booking form that doesn't overcomplicate things. Name, phone, time, guests, selected dish, and notes are all submitted through a backend API endpoint. The form uses `fetch()` so the page does not reload. Reservations are sent to `https://mama-njie-s-restaurant-7kv7.onrender.com/reserve`, and CORS is enabled in the backend so the frontend can talk to the backend securely.
+An online booking form that doesn't overcomplicate things. Name, phone, time, guests, selected dish, and notes are all submitted through a backend API endpoint. The form uses `fetch()` so the page does not reload. Reservations are sent to `https://mama-njie-s-restaurant-7kv7.onrender.com/reserve`, and CORS is enabled in the backend so the frontend can talk to the backend securely. After a successful booking, the site opens WhatsApp so the restaurant receives the reservation details instantly.
 
 ### 7. **Design That Feels Right**
 The whole site uses a warm color scheme - dark blue that feels sophisticated but approachable, orange accents that feel alive and energetic. It matches the food. It matches the feeling of walking into a family restaurant.

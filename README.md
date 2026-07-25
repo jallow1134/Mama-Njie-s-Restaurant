@@ -85,7 +85,7 @@ The reservation page includes:
 - Number of guests
 - Notes / special requests
 
-When the form is submitted, reservation details are stored on the backend and restaurant staff receive notification emails.
+When the form is submitted, reservation details are stored on the backend and the restaurant receives a prefilled WhatsApp message with the booking details.
 
 ## 🔧 Future Enhancements
 
