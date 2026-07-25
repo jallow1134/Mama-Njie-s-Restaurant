@@ -39,15 +39,13 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
 
         const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim();
         const phone = document.getElementById('phone').value.trim();
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
         const guests = document.getElementById('guests').value;
         const notes = document.getElementById('notes').value.trim();
         const selectedDish = dishInput ? dishInput.value : '';
-
-        if (!name || !email || !phone || !date || !time || !guests) {
+        if (!name || !phone || !date || !time || !guests) {
             if (successMsg) {
                 successMsg.textContent = 'Please complete the required fields before confirming your reservation.';
                 successMsg.classList.remove('hidden');
@@ -58,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const reservationData = {
             name,
-            email,
             phone,
             dish: selectedDish || 'Not specified',
             date,
@@ -71,37 +68,27 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('latestReservation', JSON.stringify(reservationData));
 
         try {
-            const response = await fetch('/api/reservations', {
+            const response = await fetch('http://localhost:3000/reserve', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(reservationData)
             });
-
-            const result = await response.json();
             if (!response.ok) {
-                throw new Error(result.message || 'Failed to save reservation.');
+                throw new Error('Server error');
             }
 
-            if (successMsg) {
-                successMsg.textContent = `Thanks ${name}! Your reservation has been saved. We will contact you soon on ${phone}.`;
-                successMsg.classList.remove('hidden');
-            }
+            alert('Booking received!');
 
             reservationForm.reset();
             if (dishInput) {
                 dishInput.value = selectedDish;
                 dishInput.classList.add('filled');
             }
-
-            setTimeout(() => {
-                if (successMsg) {
-                    successMsg.classList.add('hidden');
-                }
-            }, 5000);
         } catch (error) {
             console.error('Reservation API error:', error);
+            alert('Error, please try again');
             if (successMsg) {
                 successMsg.textContent = 'Unable to save reservation to the server. Please try again later.';
                 successMsg.classList.remove('hidden');

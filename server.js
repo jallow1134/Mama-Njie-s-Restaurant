@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
+const cors = require('cors');
 const nodemailer = require('nodemailer');
 
 dotenv.config();
@@ -96,7 +97,40 @@ function saveReservations(reservations) {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+// Allow localhost:5500 (Live Server) to access this backend
+app.use(cors({ origin: 'http://localhost:5500' }));
 app.use(express.static(path.join(__dirname)));
+
+// Public endpoint for frontend live-server to submit reservations
+app.post('/reserve', async (req, res) => {
+  const { name, phone, dish, date, time, guests, notes } = req.body;
+
+  if (!name || !phone || !date || !time || !guests) {
+    return res.status(400).json({ success: false, message: 'Name, phone, date, time, and guest count are required.' });
+  }
+
+  const reservation = {
+    id: Date.now().toString(),
+    name: name.trim(),
+    email: '',
+    phone: phone.trim(),
+    dish: dish ? dish.trim() : 'Not specified',
+    date: date.trim(),
+    time: time.trim(),
+    guests: Number(guests),
+    notes: notes ? notes.trim() : '',
+    createdAt: new Date().toISOString(),
+  };
+
+  ensureDataFile();
+  const reservations = loadReservations();
+  reservations.push(reservation);
+  saveReservations(reservations);
+
+  sendReservationNotification(reservation).catch(() => {});
+
+  return res.status(201).json({ success: true, reservation });
+});
 
 app.post('/api/reservations', async (req, res) => {
   const { name, email, phone, dish, date, time, guests, notes } = req.body;

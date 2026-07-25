@@ -55,17 +55,16 @@
                 <form class="reservation-form" id="reservationForm">
                     <div id="successMsg" class="success-message hidden">Reservation saved! We’ll contact you soon.</div>
 
-                    <input type="text" id="name" placeholder="Full Name" required>
-                    <input type="email" id="email" placeholder="Email Address" required>
-                    <input type="tel" id="phone" placeholder="Phone Number" required>
+                    <input type="text" id="name" name="name" placeholder="Full Name" required>
+                    <input type="tel" id="phone" name="phone" placeholder="Phone Number" required>
 
-                    <input type="text" id="dish" placeholder="Selected Dish" readonly>
+                    <input type="text" id="dish" name="dish" placeholder="Selected Dish" readonly>
 
                     <label for="date" class="sr-only">Select reservation date</label>
-                    <input type="date" id="date" required>
+                    <input type="date" id="date" name="date" required>
 
                     <label for="time" class="sr-only">Select reservation time</label>
-                    <select id="time" required>
+                    <select id="time" name="time" required>
                         <option value="">Select Time</option>
                         <option>12:00 PM</option>
                         <option>1:00 PM</option>
@@ -77,9 +76,9 @@
                         <option>10:00 PM</option>
                     </select>
 
-                    <input type="number" id="guests" placeholder="Number of Guests" min="1" max="20" required>
+                    <input type="number" id="guests" name="guests" placeholder="Number of Guests" min="1" max="20" required>
 
-                    <textarea id="notes" placeholder="Special Requests / Notes" rows="3"></textarea>
+                    <textarea id="notes" name="notes" placeholder="Special Requests / Notes" rows="3"></textarea>
 
                     <button type="submit" class="btn">Confirm Reservation</button>
                 </form>
