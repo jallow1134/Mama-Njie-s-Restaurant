@@ -32,11 +32,13 @@ Mama Njie's Restaurant/
 
 ## 🚀 How to Use
 
-1. **Open the website**: Open `index.html` in your browser
-2. **Navigate sections**: Use the navigation menu to move between pages
-3. **Review the menu**: See dish details and images on `menu.html`
-4. **Book a table**: Use `reservation.html` to send reservation details through WhatsApp
-5. **Contact the restaurant**: Use `contact.html` for location, phone, and hours
+1. **Run the backend**: From the project root, use `npm start`
+2. **Open the website**: Browse to `http://localhost:3000`
+3. **Navigate sections**: Use the navigation menu to move between pages
+4. **Review the menu**: See dish details and images on `menu.html`
+5. **Book a table**: Use `reservation.html` to submit a reservation request
+6. **Admin dashboard**: Visit `http://localhost:3000/admin` and authenticate with the admin credentials
+7. **Contact the restaurant**: Use `contact.html` for location, phone, and hours
 
 ## 🎨 Customization
 
@@ -84,15 +86,36 @@ The reservation page includes:
 - Number of guests
 - Notes / special requests
 
-When the form is submitted, the customer sees a confirmation message and the reservation details are opened in WhatsApp for direct contact.
+When the form is submitted, reservation details are stored on the backend and restaurant staff receive notification emails.
 
 ## 🔧 Future Enhancements
 
-- Connect the reservation form to a backend service
 - Add online ordering
 - Add a photo gallery
-- Implement email notifications
 - Add customer testimonials
+
+## 🔐 Admin Dashboard
+
+- Admin dashboard available at `/admin`
+- Protected by HTTP Basic Auth
+- Default credentials are `admin` / `password`
+- Use `.env` to configure `ADMIN_USERNAME` and `ADMIN_PASSWORD`
+- Admin dashboard supports deleting reservations and logging out
+
+## Environment Variables
+
+Create a `.env` file with:
+
+```text
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=your-smtp-user
+SMTP_PASS=your-smtp-password
+OWNER_EMAIL=owner@example.com
+FROM_EMAIL=mamanjies@example.com
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=password
+```
 
 ---
 

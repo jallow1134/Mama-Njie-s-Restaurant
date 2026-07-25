@@ -56,9 +56,13 @@
                     <div id="successMsg" class="success-message hidden">Reservation saved! We’ll contact you soon.</div>
 
                     <input type="text" id="name" placeholder="Full Name" required>
+                    <input type="email" id="email" placeholder="Email Address" required>
                     <input type="tel" id="phone" placeholder="Phone Number" required>
 
                     <input type="text" id="dish" placeholder="Selected Dish" readonly>
+
+                    <label for="date" class="sr-only">Select reservation date</label>
+                    <input type="date" id="date" required>
 
                     <label for="time" class="sr-only">Select reservation time</label>
                     <select id="time" required>

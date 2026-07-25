@@ -35,17 +35,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!reservationForm) return;
 
-    reservationForm.addEventListener('submit', (event) => {
+    reservationForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
         const phone = document.getElementById('phone').value.trim();
+        const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
         const guests = document.getElementById('guests').value;
         const notes = document.getElementById('notes').value.trim();
         const selectedDish = dishInput ? dishInput.value : '';
 
-        if (!name || !phone || !time || !guests) {
+        if (!name || !email || !phone || !date || !time || !guests) {
             if (successMsg) {
                 successMsg.textContent = 'Please complete the required fields before confirming your reservation.';
                 successMsg.classList.remove('hidden');
@@ -56,8 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const reservationData = {
             name,
+            email,
             phone,
-            dish: selectedDish,
+            dish: selectedDish || 'Not specified',
+            date,
             time,
             guests,
             notes,
@@ -66,31 +70,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         localStorage.setItem('latestReservation', JSON.stringify(reservationData));
 
-        const message = `Hello! I would like to make a reservation at Mama Njie's Restaurant.\n\nReservation Details:\n- Name: ${name}\n- Phone: ${phone}\n- Dish: ${selectedDish || 'Not specified'}\n- Time: ${time}\n- Guests: ${guests}\n- Notes: ${notes}`;
-        const whatsappURL = `https://wa.me/2205169685?text=${encodeURIComponent(message)}`;
-
         try {
-            window.location.href = whatsappURL;
-        } catch (error) {
-            console.warn('Could not open WhatsApp, using fallback.', error);
-        }
+            const response = await fetch('/api/reservations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(reservationData)
+            });
 
-        if (successMsg) {
-            successMsg.textContent = `Thanks ${name}! Your reservation request has been received. We will contact you soon on ${phone}.`;
-            successMsg.classList.remove('hidden');
-        }
-
-        reservationForm.reset();
-
-        if (dishInput) {
-            dishInput.value = selectedDish;
-            dishInput.classList.add('filled');
-        }
-
-        setTimeout(() => {
-            if (successMsg) {
-                successMsg.classList.add('hidden');
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to save reservation.');
             }
-        }, 5000);
+
+            if (successMsg) {
+                successMsg.textContent = `Thanks ${name}! Your reservation has been saved. We will contact you soon on ${phone}.`;
+                successMsg.classList.remove('hidden');
+            }
+
+            reservationForm.reset();
+            if (dishInput) {
+                dishInput.value = selectedDish;
+                dishInput.classList.add('filled');
+            }
+
+            setTimeout(() => {
+                if (successMsg) {
+                    successMsg.classList.add('hidden');
+                }
+            }, 5000);
+        } catch (error) {
+            console.error('Reservation API error:', error);
+            if (successMsg) {
+                successMsg.textContent = 'Unable to save reservation to the server. Please try again later.';
+                successMsg.classList.remove('hidden');
+                setTimeout(() => successMsg.classList.add('hidden'), 5000);
+            }
+        }
     });
 });
