@@ -68,7 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('latestReservation', JSON.stringify(reservationData));
 
         try {
-            const response = await fetch('http://localhost:3000/reserve', {
+            const endpoint = reservationForm.dataset.endpoint || 'http://localhost:3000/reserve';
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

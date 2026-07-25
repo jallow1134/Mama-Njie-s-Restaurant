@@ -97,8 +97,17 @@ function saveReservations(reservations) {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-// Allow localhost:5500 (Live Server) to access this backend
-app.use(cors({ origin: 'http://localhost:5500' }));
+// Allow Live Server and the production Render domain to access this backend
+const allowedOrigins = [
+  'http://localhost:5500',
+  'https://mama-njie-s-restaurant-7kv7.onrender.com'
+];
+app.use(cors({ origin: function(origin, cb) {
+  // allow requests with no origin (like curl, Postman)
+  if (!origin) return cb(null, true);
+  if (allowedOrigins.indexOf(origin) !== -1) return cb(null, true);
+  return cb(new Error('CORS policy: Origin not allowed'), false);
+}}));
 app.use(express.static(path.join(__dirname)));
 
 // Public endpoint for frontend live-server to submit reservations
