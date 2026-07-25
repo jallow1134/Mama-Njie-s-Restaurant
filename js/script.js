@@ -68,8 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('latestReservation', JSON.stringify(reservationData));
 
         try {
-            const endpoint = reservationForm.dataset.endpoint || 'http://localhost:3000/reserve';
-            const response = await fetch(endpoint, {
+            const response = await fetch('https://mama-njie-s-restaurant-7kv7.onrender.com/reserve', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

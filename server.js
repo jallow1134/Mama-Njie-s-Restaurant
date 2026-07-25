@@ -97,17 +97,8 @@ function saveReservations(reservations) {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-// Allow Live Server and the production Render domain to access this backend
-const allowedOrigins = [
-  'http://localhost:5500',
-  'https://mama-njie-s-restaurant-7kv7.onrender.com'
-];
-app.use(cors({ origin: function(origin, cb) {
-  // allow requests with no origin (like curl, Postman)
-  if (!origin) return cb(null, true);
-  if (allowedOrigins.indexOf(origin) !== -1) return cb(null, true);
-  return cb(new Error('CORS policy: Origin not allowed'), false);
-}}));
+// Enable CORS for all origins (simpler setup)
+app.use(cors());
 app.use(express.static(path.join(__dirname)));
 
 // Public endpoint for frontend live-server to submit reservations
@@ -307,6 +298,11 @@ app.get('/admin', basicAuth, (req, res) => {
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// Simple root endpoint to verify the backend is running
+app.get('/', (req, res) => {
+  res.send('Mama Njie Backend is Running');
 });
 
 app.use((req, res) => {
