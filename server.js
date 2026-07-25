@@ -4,6 +4,8 @@ const path = require('path');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
+const axios = require('axios');
+const PDFDocument = require('pdfkit');
 
 dotenv.config();
 
@@ -69,6 +71,27 @@ async function sendReservationNotification(reservation) {
     console.log('Reservation notification sent to', OWNER_EMAIL);
   } catch (error) {
     console.error('Failed to send reservation email:', error);
+  }
+}
+
+function escapeCsv(value) {
+  if (value == null) return '';
+  const stringValue = String(value);
+  if (/[",\n,\r]/.test(stringValue)) {
+    return `"${stringValue.replace(/"/g, '""')}"`;
+  }
+  return stringValue;
+}
+
+async function sendWhatsAppAlert(reservation) {
+  const alertMessage = `🍽️ NEW BOOKING! Name: ${reservation.name} | Phone: ${reservation.phone} | Dish: ${reservation.dish} | Date: ${reservation.date || 'N/A'} | Time: ${reservation.time} | Guests: ${reservation.guests} | Notes: ${reservation.notes || 'None'}`;
+  const apiUrl = `https://api.callmebot.com/whatsapp.php?phone=+2205169685&text=${encodeURIComponent(alertMessage)}&apikey=123456`;
+
+  try {
+    await axios.get(apiUrl);
+    console.log('WhatsApp alert sent successfully');
+  } catch (error) {
+    console.error('WhatsApp alert failed:', error.message || error);
   }
 }
 
@@ -184,6 +207,7 @@ app.post('/api/reservations', async (req, res) => {
   reservations.push(reservation);
   saveReservations(reservations);
 
+  sendWhatsAppAlert(reservation).catch(() => {});
   sendReservationNotification(reservation).catch(() => {});
 
   return res.status(201).json({ success: true, reservation });
@@ -304,6 +328,8 @@ app.get('/admin', (req, res) => {
     .page { width: min(98vw, 1200px); margin: 0 auto; padding: 24px; }
     h1 { margin-bottom: 16px; color: #ffa500; }
     .subtitle { color: #e2e8f0; margin-bottom: 16px; }
+    .download-buttons { margin-bottom: 20px; }
+    .download-btn { background: #ffa500; color: #0f2438; padding: 10px 20px; border-radius: 5px; margin-right: 10px; margin-bottom: 10px; text-decoration: none; font-weight: bold; display: inline-block; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { padding: 14px 16px; border: 1px solid rgba(255,255,255,0.14); }
     th { background: #ffa500; color: #0f2438; text-align: left; }
@@ -316,6 +342,10 @@ app.get('/admin', (req, res) => {
   <div class="page">
     <h1>Reservation Bookings</h1>
     <p class="subtitle">Newest bookings appear first.</p>
+    <div class="download-buttons">
+      <a class="download-btn" href="/admin/download/csv?key=5169685">Download CSV</a>
+      <a class="download-btn" href="/admin/download/pdf?key=5169685">Download PDF</a>
+    </div>
     <table>
       <thead>
         <tr>
@@ -335,6 +365,112 @@ app.get('/admin', (req, res) => {
   </div>
 </body>
 </html>`);
+});
+
+app.get('/admin/download/csv', (req, res) => {
+  const key = req.query.key;
+  if (key !== '5169685') {
+    return res.status(401).send('401 Unauthorized');
+  }
+
+  const reservationsPath = path.join(dataDir, 'reservations.json');
+  if (!fs.existsSync(reservationsPath)) {
+    return res.status(404).send('No bookings yet');
+  }
+
+  let reservations = [];
+  try {
+    reservations = JSON.parse(fs.readFileSync(reservationsPath, 'utf8') || '[]');
+  } catch (error) {
+    console.error('Failed to read reservations:', error);
+    return res.status(500).send('Unable to load reservations.');
+  }
+
+  const csvLines = [
+    'Name,Phone,Dish,Date,Time,Guests,Notes',
+    ...reservations.slice().reverse().map(r => {
+      return [
+        escapeCsv(r.name),
+        escapeCsv(r.phone),
+        escapeCsv(r.dish),
+        escapeCsv(r.date || 'N/A'),
+        escapeCsv(r.time),
+        escapeCsv(r.guests),
+        escapeCsv(r.notes || 'None')
+      ].join(',');
+    })
+  ];
+
+  const csvContent = csvLines.join('\n');
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename="reservations.csv"');
+  res.send(csvContent);
+});
+
+app.get('/admin/download/pdf', (req, res) => {
+  const key = req.query.key;
+  if (key !== '5169685') {
+    return res.status(401).send('401 Unauthorized');
+  }
+
+  const reservationsPath = path.join(dataDir, 'reservations.json');
+  if (!fs.existsSync(reservationsPath)) {
+    return res.status(404).send('No bookings yet');
+  }
+
+  let reservations = [];
+  try {
+    reservations = JSON.parse(fs.readFileSync(reservationsPath, 'utf8') || '[]');
+  } catch (error) {
+    console.error('Failed to read reservations:', error);
+    return res.status(500).send('Unable to load reservations.');
+  }
+
+  const doc = new PDFDocument({ size: 'A4', margin: 40 });
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', 'attachment; filename="reservations.pdf"');
+
+  doc.fontSize(18).fillColor('#ffa500').text('Reservation Bookings', { underline: true });
+  doc.moveDown(0.5);
+  doc.fontSize(12).fillColor('#f8fafc').text('Newest bookings appear first.');
+  doc.moveDown(1);
+
+  const tableTop = doc.y;
+  const columnWidths = [100, 80, 90, 60, 60, 50, 120];
+  const columns = ['Name', 'Phone', 'Dish', 'Date', 'Time', 'Guests', 'Notes'];
+
+  let x = doc.page.margins.left;
+  columns.forEach((header, index) => {
+    doc.font('Helvetica-Bold').fillColor('#0f2438').fontSize(10).text(header, x, tableTop, { width: columnWidths[index], continued: index !== columns.length - 1 });
+    x += columnWidths[index];
+  });
+
+  let rowY = tableTop + 20;
+  reservations.slice().reverse().forEach(r => {
+    x = doc.page.margins.left;
+    const rowValues = [
+      r.name || '',
+      r.phone || '',
+      r.dish || '',
+      r.date || 'N/A',
+      r.time || '',
+      r.guests != null ? String(r.guests) : '',
+      r.notes || ''
+    ];
+
+    rowValues.forEach((value, index) => {
+      doc.font('Helvetica').fillColor('#f8fafc').fontSize(9).text(value, x, rowY, { width: columnWidths[index], continued: index !== columns.length - 1 });
+      x += columnWidths[index];
+    });
+    rowY += 18;
+    if (rowY > doc.page.height - 80) {
+      doc.addPage();
+      rowY = doc.page.margins.top;
+    }
+  });
+
+  doc.pipe(res);
+  doc.end();
 });
 
 app.get('/api/health', (req, res) => {
