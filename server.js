@@ -61,7 +61,7 @@ async function sendReservationNotification(reservation) {
     from: FROM_EMAIL,
     to: OWNER_EMAIL,
     subject: `New Reservation from ${reservation.name}`,
-    text: `New reservation received:\n\nName: ${reservation.name}\nEmail: ${reservation.email}\nPhone: ${reservation.phone}\nDish: ${reservation.dish}\nDate: ${reservation.date}\nTime: ${reservation.time}\nGuests: ${reservation.guests}\nNotes: ${reservation.notes || 'None'}\nCreated: ${reservation.createdAt}`,
+    text: `New reservation received:\n\nName: ${reservation.name}\nEmail: ${reservation.email}\nPhone: ${reservation.phone}\nDish: ${reservation.dish}\nTime: ${reservation.time}\nGuests: ${reservation.guests}\nNotes: ${reservation.notes || 'None'}\nCreated: ${reservation.createdAt}`,
   };
 
   try {
@@ -132,10 +132,10 @@ app.get('/reserve', (req, res) => {
 
 // Public endpoint for frontend live-server to submit reservations
 app.post('/reserve', async (req, res) => {
-  const { name, phone, dish, date, time, guests, notes } = req.body;
+  const { name, phone, dish, time, guests, notes } = req.body;
 
-  if (!name || !phone || !date || !time || !guests) {
-    return res.status(400).json({ success: false, message: 'Name, phone, date, time, and guest count are required.' });
+  if (!name || !phone || !time || !guests) {
+    return res.status(400).json({ success: false, message: 'Name, phone, time, and guest count are required.' });
   }
 
   const reservation = {
@@ -144,7 +144,6 @@ app.post('/reserve', async (req, res) => {
     email: '',
     phone: phone.trim(),
     dish: dish ? dish.trim() : 'Not specified',
-    date: date.trim(),
     time: time.trim(),
     guests: Number(guests),
     notes: notes ? notes.trim() : '',
@@ -162,10 +161,10 @@ app.post('/reserve', async (req, res) => {
 });
 
 app.post('/api/reservations', async (req, res) => {
-  const { name, email, phone, dish, date, time, guests, notes } = req.body;
+  const { name, email, phone, dish, time, guests, notes } = req.body;
 
-  if (!name || !email || !phone || !date || !time || !guests) {
-    return res.status(400).json({ success: false, message: 'Name, email, phone, date, time, and guest count are required.' });
+  if (!name || !email || !phone || !time || !guests) {
+    return res.status(400).json({ success: false, message: 'Name, email, phone, time, and guest count are required.' });
   }
 
   const reservation = {
@@ -174,7 +173,6 @@ app.post('/api/reservations', async (req, res) => {
     email: email.trim(),
     phone: phone.trim(),
     dish: dish ? dish.trim() : 'Not specified',
-    date: date.trim(),
     time: time.trim(),
     guests: Number(guests),
     notes: notes ? notes.trim() : '',
@@ -270,7 +268,6 @@ app.get('/admin', basicAuth, (req, res) => {
             '<td>' + r.email + '</td>' +
             '<td>' + r.phone + '</td>' +
             '<td>' + r.dish + '</td>' +
-            '<td>' + r.date + '</td>' +
             '<td>' + r.time + '</td>' +
             '<td>' + r.guests + '</td>' +
             '<td>' + (r.notes || '—') + '</td>' +
@@ -287,7 +284,6 @@ app.get('/admin', basicAuth, (req, res) => {
                 '<th>Email</th>' +
                 '<th>Phone</th>' +
                 '<th>Dish</th>' +
-                '<th>Date</th>' +
                 '<th>Time</th>' +
                 '<th>Guests</th>' +
                 '<th>Notes</th>' +

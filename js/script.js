@@ -40,12 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const name = document.getElementById('name').value.trim();
         const phone = document.getElementById('phone').value.trim();
-        const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
         const guests = document.getElementById('guests').value;
         const notes = document.getElementById('notes').value.trim();
         const selectedDish = dishInput ? dishInput.value : '';
-        if (!name || !phone || !date || !time || !guests) {
+        if (!name || !phone || !time || !guests) {
             if (successMsg) {
                 successMsg.textContent = 'Please complete the required fields before confirming your reservation.';
                 successMsg.classList.remove('hidden');
@@ -58,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
             name,
             phone,
             dish: selectedDish || 'Not specified',
-            date,
             time,
             guests,
             notes,

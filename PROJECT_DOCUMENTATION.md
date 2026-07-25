@@ -92,7 +92,7 @@ This is where people learn what Mama Njie is really about. The restaurant's miss
 Simple and direct. Where the restaurant is, how to reach them, when they're open.
 
 ### 6. **Reservation System That Actually Works**
-An online booking form that doesn't overcomplicate things. Name, phone, date, time, guests, selected dish, and notes are all submitted through a backend API endpoint. The form uses `fetch()` so the page does not reload. Reservations are sent to `https://mama-njie-s-restaurant-7kv7.onrender.com/reserve`, and CORS is enabled in the backend so the frontend can talk to the backend securely.
+An online booking form that doesn't overcomplicate things. Name, phone, time, guests, selected dish, and notes are all submitted through a backend API endpoint. The form uses `fetch()` so the page does not reload. Reservations are sent to `https://mama-njie-s-restaurant-7kv7.onrender.com/reserve`, and CORS is enabled in the backend so the frontend can talk to the backend securely.
 
 ### 7. **Design That Feels Right**
 The whole site uses a warm color scheme - dark blue that feels sophisticated but approachable, orange accents that feel alive and energetic. It matches the food. It matches the feeling of walking into a family restaurant.
@@ -176,9 +176,9 @@ Fixed a small but important issue - the WhatsApp link had an incomplete phone nu
 ✓ Ensured all contact methods are working properly
 
 ### Phase 8: Reservation Form Improvements
-I improved the reservation process to make it easier to use and more informative. The form collects name, phone, selected dish, date, time, number of guests, and notes so the restaurant receives complete booking details.
+I improved the reservation process to make it easier to use and more informative. The form collects name, phone, selected dish, time, number of guests, and notes so the restaurant receives complete booking details.
 
-✓ Kept the date field for accurate reservation scheduling
+✓ Removed the date field to simplify bookings
 ✓ Added fields for number of guests and special requests
 ✓ Ensured the selected dish is prefilled when reserving from the menu
 ✓ Confirmation message appears after submission

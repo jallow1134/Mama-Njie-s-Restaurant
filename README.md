@@ -81,7 +81,6 @@ The reservation page includes:
 - Email
 - Phone number
 - Selected dish
-- Date
 - Time
 - Number of guests
 - Notes / special requests
