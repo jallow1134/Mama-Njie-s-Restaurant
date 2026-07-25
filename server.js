@@ -101,6 +101,35 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 app.use(express.static(path.join(__dirname)));
 
+app.get('/reserve', (req, res) => {
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reservation API</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0f2438; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+    .box { max-width: 520px; padding: 32px; border-radius: 16px; background: rgba(15, 36, 56, 0.94); box-shadow: 0 18px 40px rgba(0,0,0,.25); text-align: center; }
+    .box h1 { margin-top: 0; color: #ffa500; }
+    .box p { line-height: 1.7; }
+    .box code { display: block; margin: 16px auto; padding: 14px 18px; background: #10273b; border-radius: 10px; color: #a5f3fc; max-width: 100%; overflow-x: auto; }
+    .box a { color: #facc15; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Reservation API</h1>
+    <p>This endpoint accepts POST requests with reservation data.</p>
+    <p>Use the reservation form or send JSON to:</p>
+    <code>POST https://mama-njie-s-restaurant-7kv7.onrender.com/reserve</code>
+    <p>If you are seeing this page, the backend is running properly.</p>
+    <p><a href="/">Go back to homepage</a></p>
+  </div>
+</body>
+</html>`);
+});
+
 // Public endpoint for frontend live-server to submit reservations
 app.post('/reserve', async (req, res) => {
   const { name, phone, dish, date, time, guests, notes } = req.body;
