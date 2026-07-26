@@ -35,6 +35,8 @@ const mailTransport = SMTP_HOST && SMTP_USER && SMTP_PASS
     })
   : null;
 
+ensureDataFile();
+
 function basicAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Basic ')) {
@@ -106,8 +108,12 @@ function ensureDataFile() {
 }
 
 function loadReservations() {
+  ensureDataFile();
+
   try {
-    return JSON.parse(fs.readFileSync(reservationsFile, 'utf8')) || [];
+    const raw = fs.readFileSync(reservationsFile, 'utf8').trim();
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
     console.error('Failed to read reservations:', error);
     return [];
@@ -115,6 +121,7 @@ function loadReservations() {
 }
 
 function saveReservations(reservations) {
+  ensureDataFile();
   fs.writeFileSync(reservationsFile, JSON.stringify(reservations, null, 2), 'utf8');
 }
 
@@ -373,18 +380,8 @@ app.get('/admin/download/csv', (req, res) => {
     return res.status(401).send('401 Unauthorized');
   }
 
-  const reservationsPath = path.join(dataDir, 'reservations.json');
-  if (!fs.existsSync(reservationsPath)) {
-    return res.status(404).send('No bookings yet');
-  }
-
-  let reservations = [];
-  try {
-    reservations = JSON.parse(fs.readFileSync(reservationsPath, 'utf8') || '[]');
-  } catch (error) {
-    console.error('Failed to read reservations:', error);
-    return res.status(500).send('Unable to load reservations.');
-  }
+  ensureDataFile();
+  const reservations = loadReservations();
 
   const csvLines = [
     'Name,Phone,Dish,Date,Time,Guests,Notes',
@@ -396,13 +393,13 @@ app.get('/admin/download/csv', (req, res) => {
         escapeCsv(r.date || 'N/A'),
         escapeCsv(r.time),
         escapeCsv(r.guests),
-        escapeCsv(r.notes || 'None')
+        escapeCsv(r.notes || '')
       ].join(',');
     })
   ];
 
   const csvContent = csvLines.join('\n');
-  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', 'attachment; filename="reservations.csv"');
   res.send(csvContent);
 });
@@ -413,63 +410,96 @@ app.get('/admin/download/pdf', (req, res) => {
     return res.status(401).send('401 Unauthorized');
   }
 
-  const reservationsPath = path.join(dataDir, 'reservations.json');
-  if (!fs.existsSync(reservationsPath)) {
-    return res.status(404).send('No bookings yet');
-  }
-
-  let reservations = [];
-  try {
-    reservations = JSON.parse(fs.readFileSync(reservationsPath, 'utf8') || '[]');
-  } catch (error) {
-    console.error('Failed to read reservations:', error);
-    return res.status(500).send('Unable to load reservations.');
-  }
+  ensureDataFile();
+  const reservations = loadReservations();
 
   const doc = new PDFDocument({ size: 'A4', margin: 40 });
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', 'attachment; filename="reservations.pdf"');
+  doc.pipe(res);
 
-  doc.fontSize(18).fillColor('#ffa500').text('Reservation Bookings', { underline: true });
+  doc.font('Helvetica-Bold').fontSize(16).fillColor('#000000').text("Mama Njie's Reservations");
   doc.moveDown(0.5);
-  doc.fontSize(12).fillColor('#f8fafc').text('Newest bookings appear first.');
+
+  if (!reservations.length) {
+    doc.font('Helvetica').fontSize(12).fillColor('#000000').text('No reservations yet');
+    doc.end();
+    return;
+  }
+
+  doc.font('Helvetica').fontSize(12).fillColor('#000000').text(`Showing ${reservations.length} reservation${reservations.length === 1 ? '' : 's'}.`);
   doc.moveDown(1);
 
-  const tableTop = doc.y;
-  const columnWidths = [100, 80, 90, 60, 60, 50, 120];
   const columns = ['Name', 'Phone', 'Dish', 'Date', 'Time', 'Guests', 'Notes'];
+  const tableTop = doc.y;
+  const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+  const columnWidths = [90, 80, 75, 60, 55, 50, 120];
+  const totalWidth = columnWidths.reduce((sum, width) => sum + width, 0);
+  const startX = doc.page.margins.left;
+  const rowHeight = 22;
+  const headerHeight = 24;
 
-  let x = doc.page.margins.left;
+  let y = tableTop;
+  let x = startX;
+
   columns.forEach((header, index) => {
-    doc.font('Helvetica-Bold').fillColor('#0f2438').fontSize(10).text(header, x, tableTop, { width: columnWidths[index], continued: index !== columns.length - 1 });
-    x += columnWidths[index];
+    const width = columnWidths[index];
+    doc.rect(x, y, width, headerHeight).fill('#ffa500').stroke('#000000');
+    doc.fillColor('#000000').font('Helvetica-Bold').fontSize(12).text(header, x + 3, y + 5, {
+      width: width - 6,
+      height: headerHeight - 6,
+      ellipsis: true
+    });
+    x += width;
   });
 
-  let rowY = tableTop + 20;
-  reservations.slice().reverse().forEach(r => {
-    x = doc.page.margins.left;
+  y += headerHeight;
+  reservations.slice().reverse().forEach((reservation) => {
+    if (y + rowHeight > doc.page.height - doc.page.margins.bottom) {
+      doc.addPage();
+      y = doc.page.margins.top;
+      x = startX;
+
+      columns.forEach((header, index) => {
+        const width = columnWidths[index];
+        doc.rect(x, y, width, headerHeight).fill('#ffa500').stroke('#000000');
+        doc.fillColor('#000000').font('Helvetica-Bold').fontSize(12).text(header, x + 3, y + 5, {
+          width: width - 6,
+          height: headerHeight - 6,
+          ellipsis: true
+        });
+        x += width;
+      });
+
+      y += headerHeight;
+      x = startX;
+    }
+
     const rowValues = [
-      r.name || '',
-      r.phone || '',
-      r.dish || '',
-      r.date || 'N/A',
-      r.time || '',
-      r.guests != null ? String(r.guests) : '',
-      r.notes || ''
+      reservation.name || '',
+      reservation.phone || '',
+      reservation.dish || '',
+      reservation.date || 'N/A',
+      reservation.time || '',
+      reservation.guests != null ? String(reservation.guests) : '',
+      reservation.notes || ''
     ];
 
     rowValues.forEach((value, index) => {
-      doc.font('Helvetica').fillColor('#f8fafc').fontSize(9).text(value, x, rowY, { width: columnWidths[index], continued: index !== columns.length - 1 });
-      x += columnWidths[index];
+      const width = columnWidths[index];
+      doc.rect(x, y, width, rowHeight).stroke('#000000');
+      doc.fillColor('#000000').font('Helvetica').fontSize(12).text(value, x + 3, y + 4, {
+        width: width - 6,
+        height: rowHeight - 6,
+        ellipsis: true
+      });
+      x += width;
     });
-    rowY += 18;
-    if (rowY > doc.page.height - 80) {
-      doc.addPage();
-      rowY = doc.page.margins.top;
-    }
+
+    y += rowHeight;
+    x = startX;
   });
 
-  doc.pipe(res);
   doc.end();
 });
 
