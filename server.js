@@ -1,18 +1,16 @@
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
 const PDFDocument = require('pdfkit');
+const mysql = require('mysql2/promise'); // <-- ADDED
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const dataDir = path.join(__dirname, 'data');
-const reservationsFile = path.join(dataDir, 'reservations.json');
 
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'password';
@@ -21,36 +19,63 @@ const FROM_EMAIL = process.env.FROM_EMAIL || 'no-reply@mamanjies.com';
 const SMTP_HOST = process.env.SMTP_HOST || '';
 const SMTP_PORT = Number(process.env.SMTP_PORT) || 587;
 const SMTP_USER = process.env.SMTP_USER || '';
-const SMTP_PASS = process.env.SMTP_PASS || ''; 
+const SMTP_PASS = process.env.SMTP_PASS || '';
 
 const mailTransport = SMTP_HOST && SMTP_USER && SMTP_PASS
-  ? nodemailer.createTransport({
+ ? nodemailer.createTransport({
       host: SMTP_HOST,
       port: SMTP_PORT,
       secure: SMTP_PORT === 465,
-      auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASS,
-      },
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
     })
   : null;
 
-ensureDataFile();
+// 1. MYSQL CONNECTION POOL
+const db = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 3306,
+  waitForConnections: true,
+  connectionLimit: 10
+});
+
+// 2. CREATE TABLE ON START
+async function initDB() {
+  try {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS reservations (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(100),
+        phone VARCHAR(20),
+        dish VARCHAR(100),
+        date VARCHAR(50),
+        time VARCHAR(20),
+        guests INT,
+        notes TEXT,
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("MySQL Connected & Table Ready");
+  } catch (err) {
+    console.error("DB Error:", err);
+  }
+}
+initDB();
 
 function basicAuth(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Basic ')) {
+  if (!authHeader ||!authHeader.startsWith('Basic ')) {
     res.setHeader('WWW-Authenticate', 'Basic realm="Admin Area"');
     return res.status(401).send('Authentication required');
   }
-
   const base64Credentials = authHeader.split(' ')[1] || '';
   const [username, password] = Buffer.from(base64Credentials, 'base64').toString().split(':');
-
   if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
     return next();
   }
-
   res.setHeader('WWW-Authenticate', 'Basic realm="Admin Area"');
   return res.status(401).send('Invalid credentials');
 }
@@ -60,14 +85,12 @@ async function sendReservationNotification(reservation) {
     console.warn('SMTP is not configured. Skipping email notification.');
     return;
   }
-
   const mailOptions = {
     from: FROM_EMAIL,
     to: OWNER_EMAIL,
     subject: `New Reservation from ${reservation.name}`,
     text: `New reservation received:\n\nName: ${reservation.name}\nEmail: ${reservation.email}\nPhone: ${reservation.phone}\nDish: ${reservation.dish}\nTime: ${reservation.time}\nGuests: ${reservation.guests}\nNotes: ${reservation.notes || 'None'}\nCreated: ${reservation.createdAt}`,
   };
-
   try {
     await mailTransport.sendMail(mailOptions);
     console.log('Reservation notification sent to', OWNER_EMAIL);
@@ -88,7 +111,6 @@ function escapeCsv(value) {
 async function sendWhatsAppAlert(reservation) {
   const alertMessage = `🍽️ NEW BOOKING! Name: ${reservation.name} | Phone: ${reservation.phone} | Dish: ${reservation.dish} | Date: ${reservation.date || 'N/A'} | Time: ${reservation.time} | Guests: ${reservation.guests} | Notes: ${reservation.notes || 'None'}`;
   const apiUrl = `https://api.callmebot.com/whatsapp.php?phone=+2205169685&text=${encodeURIComponent(alertMessage)}&apikey=123456`;
-
   try {
     await axios.get(apiUrl);
     console.log('WhatsApp alert sent successfully');
@@ -97,148 +119,76 @@ async function sendWhatsAppAlert(reservation) {
   }
 }
 
-function ensureDataFile() {
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-
-  if (!fs.existsSync(reservationsFile)) {
-    fs.writeFileSync(reservationsFile, '[]', 'utf8');
-  }
-}
-
-function loadReservations() {
-  ensureDataFile();
-
-  try {
-    const raw = fs.readFileSync(reservationsFile, 'utf8').trim();
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    console.error('Failed to read reservations:', error);
-    return [];
-  }
-}
-
-function saveReservations(reservations) {
-  ensureDataFile();
-  fs.writeFileSync(reservationsFile, JSON.stringify(reservations, null, 2), 'utf8');
-}
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-// Enable CORS for all origins (simpler setup)
 app.use(cors());
 app.use(express.static(path.join(__dirname)));
 
 app.get('/reserve', (req, res) => {
-  res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reservation API</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #0f2438; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-    .box { max-width: 520px; padding: 32px; border-radius: 16px; background: rgba(15, 36, 56, 0.94); box-shadow: 0 18px 40px rgba(0,0,0,.25); text-align: center; }
-    .box h1 { margin-top: 0; color: #ffa500; }
-    .box p { line-height: 1.7; }
-    .box code { display: block; margin: 16px auto; padding: 14px 18px; background: #10273b; border-radius: 10px; color: #a5f3fc; max-width: 100%; overflow-x: auto; }
-    .box a { color: #facc15; text-decoration: none; }
-  </style>
-</head>
-<body>
-  <div class="box">
-    <h1>Reservation API</h1>
-    <p>This endpoint accepts POST requests with reservation data.</p>
-    <p>Use the reservation form or send JSON to:</p>
-    <code>POST https://mama-njie-s-restaurant-7kv7.onrender.com/reserve</code>
-    <p>If you are seeing this page, the backend is running properly.</p>
-    <p><a href="/">Go back to homepage</a></p>
-  </div>
-</body>
-</html>`);
+  res.send(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Reservation API</title></head><body><h1>API Running</h1></body></html>`);
 });
 
-// Public endpoint for frontend live-server to submit reservations
+// POST /reserve - CHANGED TO MYSQL
 app.post('/reserve', async (req, res) => {
   const { name, phone, dish, time, guests, notes } = req.body;
-
-  if (!name || !phone || !time || !guests) {
+  if (!name ||!phone ||!time ||!guests) {
     return res.status(400).json({ success: false, message: 'Name, phone, time, and guest count are required.' });
   }
-
-  const reservation = {
-    id: Date.now().toString(),
-    name: name.trim(),
-    email: '',
-    phone: phone.trim(),
-    dish: dish ? dish.trim() : 'Not specified',
-    time: time.trim(),
-    guests: Number(guests),
-    notes: notes ? notes.trim() : '',
-    createdAt: new Date().toISOString(),
-  };
-
-  ensureDataFile();
-  const reservations = loadReservations();
-  reservations.push(reservation);
-  saveReservations(reservations);
-
-  sendReservationNotification(reservation).catch(() => {});
-
-  return res.status(201).json({ success: true, reservation });
+  try {
+    const [result] = await db.execute(
+      'INSERT INTO reservations (name, email, phone, dish, time, guests, notes) VALUES (?,?,?,?,?,?,?)',
+      [name.trim(), '', phone.trim(), dish? dish.trim() : 'Not specified', time.trim(), Number(guests), notes? notes.trim() : '']
+    );
+    const reservation = { id: result.insertId, name, phone, dish, time, guests, notes, createdAt: new Date().toISOString() };
+    sendWhatsAppAlert(reservation).catch(() => {});
+    sendReservationNotification(reservation).catch(() => {});
+    return res.status(201).json({ success: true, reservation });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Database error' });
+  }
 });
 
+// POST /api/reservations - CHANGED TO MYSQL
 app.post('/api/reservations', async (req, res) => {
   const { name, email, phone, dish, time, guests, notes } = req.body;
-
-  if (!name || !email || !phone || !time || !guests) {
+  if (!name ||!email ||!phone ||!time ||!guests) {
     return res.status(400).json({ success: false, message: 'Name, email, phone, time, and guest count are required.' });
   }
-
-  const reservation = {
-    id: Date.now().toString(),
-    name: name.trim(),
-    email: email.trim(),
-    phone: phone.trim(),
-    dish: dish ? dish.trim() : 'Not specified',
-    time: time.trim(),
-    guests: Number(guests),
-    notes: notes ? notes.trim() : '',
-    createdAt: new Date().toISOString(),
-  };
-
-  ensureDataFile();
-  const reservations = loadReservations();
-  reservations.push(reservation);
-  saveReservations(reservations);
-
-  sendWhatsAppAlert(reservation).catch(() => {});
-  sendReservationNotification(reservation).catch(() => {});
-
-  return res.status(201).json({ success: true, reservation });
-});
-
-app.get('/api/reservations', basicAuth, (req, res) => {
-  ensureDataFile();
-  const reservations = loadReservations();
-  res.json({ success: true, reservations });
-});
-
-app.delete('/api/reservations/:id', basicAuth, (req, res) => {
-  const { id } = req.params;
-  ensureDataFile();
-  const reservations = loadReservations();
-  const index = reservations.findIndex(r => r.id === id);
-
-  if (index === -1) {
-    return res.status(404).json({ success: false, message: 'Reservation not found.' });
+  try {
+    const [result] = await db.execute(
+      'INSERT INTO reservations (name, email, phone, dish, time, guests, notes) VALUES (?,?,?,?,?,?,?)',
+      [name.trim(), email.trim(), phone.trim(), dish? dish.trim() : 'Not specified', time.trim(), Number(guests), notes? notes.trim() : '']
+    );
+    const reservation = { id: result.insertId, name, email, phone, dish, time, guests, notes, createdAt: new Date().toISOString() };
+    sendWhatsAppAlert(reservation).catch(() => {});
+    sendReservationNotification(reservation).catch(() => {});
+    return res.status(201).json({ success: true, reservation });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Database error' });
   }
+});
 
-  reservations.splice(index, 1);
-  saveReservations(reservations);
-  return res.json({ success: true });
+// GET /api/reservations - CHANGED TO MYSQL
+app.get('/api/reservations', basicAuth, async (req, res) => {
+  try {
+    const [rows] = await db.execute('SELECT * FROM reservations ORDER BY createdAt DESC');
+    res.json({ success: true, reservations: rows });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+// DELETE - CHANGED TO MYSQL
+app.delete('/api/reservations/:id', basicAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.execute('DELETE FROM reservations WHERE id =?', [id]);
+    return res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
 });
 
 app.get('/logout', (req, res) => {
@@ -246,276 +196,69 @@ app.get('/logout', (req, res) => {
   return res.status(401).send('Logged out');
 });
 
-app.get('/admin', (req, res) => {
+// GET /admin - CHANGED TO MYSQL
+app.get('/admin', async (req, res) => {
   const key = req.query.key;
-  if (key !== '5169685') {
+  if (key!== '5169685') {
     return res.status(401).send('401 Unauthorized');
   }
-
-  const reservationsPath = path.join(dataDir, 'reservations.json');
-  if (!fs.existsSync(reservationsPath)) {
-    return res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Bookings - Mama Njie's Restaurant</title>
-  <style>
-    body { margin: 0; min-height: 100vh; background: #0f2438; color: #f8fafc; display: flex; align-items: center; justify-content: center; font-family: Arial, sans-serif; }
-    .box { width: min(95vw, 760px); padding: 32px; text-align: center; border-radius: 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); }
-    h1 { color: #ffa500; margin-bottom: 16px; }
-    p { color: #f8fafc; font-size: 1rem; line-height: 1.6; }
-  </style>
-</head>
-<body>
-  <div class="box">
-    <h1>No bookings yet</h1>
-    <p>Reservation storage has not been created yet.</p>
-  </div>
-</body>
-</html>`);
-  }
-
-  let reservations = [];
   try {
-    const raw = fs.readFileSync(reservationsPath, 'utf8');
-    reservations = JSON.parse(raw || '[]');
-  } catch (error) {
-    console.error('Failed to read reservations:', error);
-    return res.status(500).send('Unable to load reservations.');
-  }
-
-  if (!Array.isArray(reservations) || reservations.length === 0) {
-    return res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Bookings - Mama Njie's Restaurant</title>
-  <style>
-    body { margin: 0; min-height: 100vh; background: #0f2438; color: #f8fafc; display: flex; align-items: center; justify-content: center; font-family: Arial, sans-serif; }
-    .box { width: min(95vw, 760px); padding: 32px; text-align: center; border-radius: 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); }
-    h1 { color: #ffa500; margin-bottom: 16px; }
-    p { color: #f8fafc; font-size: 1rem; line-height: 1.6; }
-  </style>
-</head>
-<body>
-  <div class="box">
-    <h1>No bookings yet</h1>
-    <p>There are currently no saved reservations.</p>
-  </div>
-</body>
-</html>`);
-  }
-
-  reservations = reservations.slice().reverse();
-
-  const rows = reservations.map(r => {
-    const dateValue = r.date || 'N/A';
-    const notesValue = r.notes ? r.notes.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '—';
-    return `<tr>
-      <td>${r.name || ''}</td>
-      <td>${r.phone || ''}</td>
-      <td>${r.dish || ''}</td>
-      <td>${dateValue}</td>
-      <td>${r.time || ''}</td>
-      <td>${r.guests != null ? r.guests : ''}</td>
-      <td>${notesValue}</td>
-    </tr>`;
-  }).join('');
-
-  res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Bookings - Mama Njie's Restaurant</title>
-  <style>
-    body { margin: 0; min-height: 100vh; background: #0f2438; color: #f8fafc; font-family: Arial, sans-serif; }
-    .page { width: min(98vw, 1200px); margin: 0 auto; padding: 24px; }
-    h1 { margin-bottom: 16px; color: #ffa500; }
-    .subtitle { color: #e2e8f0; margin-bottom: 16px; }
-    .download-buttons { margin-bottom: 20px; }
-    .download-btn { background: #ffa500; color: #0f2438; padding: 10px 20px; border-radius: 5px; margin-right: 10px; margin-bottom: 10px; text-decoration: none; font-weight: bold; display: inline-block; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 14px 16px; border: 1px solid rgba(255,255,255,0.14); }
-    th { background: #ffa500; color: #0f2438; text-align: left; }
-    tbody tr:nth-child(odd) { background: rgba(255,255,255,0.04); }
-    tbody tr:nth-child(even) { background: rgba(255,255,255,0.08); }
-    td { color: #f8fafc; }
-  </style>
-</head>
-<body>
-  <div class="page">
-    <h1>Reservation Bookings</h1>
-    <p class="subtitle">Newest bookings appear first.</p>
-    <div class="download-buttons">
-      <a class="download-btn" href="/admin/download/csv?key=5169685">Download CSV</a>
-      <a class="download-btn" href="/admin/download/pdf?key=5169685">Download PDF</a>
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Phone</th>
-          <th>Dish</th>
-          <th>Date</th>
-          <th>Time</th>
-          <th>Guests</th>
-          <th>Notes</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rows}
-      </tbody>
-    </table>
-  </div>
-</body>
-</html>`);
-});
-
-app.get('/admin/download/csv', (req, res) => {
-  const key = req.query.key;
-  if (key !== '5169685') {
-    return res.status(401).send('401 Unauthorized');
-  }
-
-  ensureDataFile();
-  const reservations = loadReservations();
-
-  const csvLines = [
-    'Name,Phone,Dish,Date,Time,Guests,Notes',
-    ...reservations.slice().reverse().map(r => {
-      return [
-        escapeCsv(r.name),
-        escapeCsv(r.phone),
-        escapeCsv(r.dish),
-        escapeCsv(r.date || 'N/A'),
-        escapeCsv(r.time),
-        escapeCsv(r.guests),
-        escapeCsv(r.notes || '')
-      ].join(',');
-    })
-  ];
-
-  const csvContent = csvLines.join('\n');
-  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', 'attachment; filename="reservations.csv"');
-  res.send(csvContent);
-});
-
-app.get('/admin/download/pdf', (req, res) => {
-  const key = req.query.key;
-  if (key !== '5169685') {
-    return res.status(401).send('401 Unauthorized');
-  }
-
-  ensureDataFile();
-  const reservations = loadReservations();
-
-  const doc = new PDFDocument({ size: 'A4', margin: 40 });
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', 'attachment; filename="reservations.pdf"');
-  doc.pipe(res);
-
-  doc.font('Helvetica-Bold').fontSize(16).fillColor('#000000').text("Mama Njie's Reservations");
-  doc.moveDown(0.5);
-
-  if (!reservations.length) {
-    doc.font('Helvetica').fontSize(12).fillColor('#000000').text('No reservations yet');
-    doc.end();
-    return;
-  }
-
-  doc.font('Helvetica').fontSize(12).fillColor('#000000').text(`Showing ${reservations.length} reservation${reservations.length === 1 ? '' : 's'}.`);
-  doc.moveDown(1);
-
-  const columns = ['Name', 'Phone', 'Dish', 'Date', 'Time', 'Guests', 'Notes'];
-  const tableTop = doc.y;
-  const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
-  const columnWidths = [90, 80, 75, 60, 55, 50, 120];
-  const totalWidth = columnWidths.reduce((sum, width) => sum + width, 0);
-  const startX = doc.page.margins.left;
-  const rowHeight = 22;
-  const headerHeight = 24;
-
-  let y = tableTop;
-  let x = startX;
-
-  columns.forEach((header, index) => {
-    const width = columnWidths[index];
-    doc.rect(x, y, width, headerHeight).fill('#ffa500').stroke('#000000');
-    doc.fillColor('#000000').font('Helvetica-Bold').fontSize(12).text(header, x + 3, y + 5, {
-      width: width - 6,
-      height: headerHeight - 6,
-      ellipsis: true
-    });
-    x += width;
-  });
-
-  y += headerHeight;
-  reservations.slice().reverse().forEach((reservation) => {
-    if (y + rowHeight > doc.page.height - doc.page.margins.bottom) {
-      doc.addPage();
-      y = doc.page.margins.top;
-      x = startX;
-
-      columns.forEach((header, index) => {
-        const width = columnWidths[index];
-        doc.rect(x, y, width, headerHeight).fill('#ffa500').stroke('#000000');
-        doc.fillColor('#000000').font('Helvetica-Bold').fontSize(12).text(header, x + 3, y + 5, {
-          width: width - 6,
-          height: headerHeight - 6,
-          ellipsis: true
-        });
-        x += width;
-      });
-
-      y += headerHeight;
-      x = startX;
+    const [reservations] = await db.execute('SELECT * FROM reservations ORDER BY createdAt DESC');
+    if (!reservations.length) {
+      return res.send(`<html><body style="background:#0f2438;color:#fff;text-align:center;padding:50px"><h1>No bookings yet</h1></body></html>`);
     }
+    const rows = reservations.map(r => `<tr><td>${r.name || ''}</td><td>${r.phone || ''}</td><td>${r.dish || ''}</td><td>${r.date || 'N/A'}</td><td>${r.time || ''}</td><td>${r.guests!= null? r.guests : ''}</td><td>${r.notes || '—'}</td></tr>`).join('');
+    res.send(`<!DOCTYPE html><html><head><title>Admin</title><style>body{background:#0f2438;color:#fff;font-family:Arial} table{width:100%;border-collapse:collapse} th,td{padding:10px;border:1px solid #fff} th{background:#ffa500;color:#000}.download-btn{background:#ffa500;color:#000;padding:10px;text-decoration:none;margin:5px}</style></head><body><div style="padding:20px"><h1>Reservation Bookings</h1><a class="download-btn" href="/admin/download/csv?key=5169685">Download CSV</a><a class="download-btn" href="/admin/download/pdf?key=5169685">Download PDF</a><table><thead><tr><th>Name</th><th>Phone</th><th>Dish</th><th>Date</th><th>Time</th><th>Guests</th><th>Notes</th></tr></thead><tbody>${rows}</tbody></table></div></body></html>`);
+  } catch (err) {
+    res.status(500).send('DB Error');
+  }
+});
 
-    const rowValues = [
-      reservation.name || '',
-      reservation.phone || '',
-      reservation.dish || '',
-      reservation.date || 'N/A',
-      reservation.time || '',
-      reservation.guests != null ? String(reservation.guests) : '',
-      reservation.notes || ''
-    ];
+// CSV - CHANGED TO MYSQL
+app.get('/admin/download/csv', async (req, res) => {
+  if (req.query.key!== '5169685') return res.status(401).send('401 Unauthorized');
+  try {
+    const [reservations] = await db.execute('SELECT * FROM reservations ORDER BY createdAt DESC');
+    const csvLines = ['Name,Phone,Dish,Date,Time,Guests,Notes',...reservations.map(r => [escapeCsv(r.name), escapeCsv(r.phone), escapeCsv(r.dish), escapeCsv(r.date || 'N/A'), escapeCsv(r.time), escapeCsv(r.guests), escapeCsv(r.notes || '')].join(','))];
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="reservations.csv"');
+    res.send(csvLines.join('\n'));
+  } catch (err) {
+    res.status(500).send("Error");
+  }
+});
 
-    rowValues.forEach((value, index) => {
-      const width = columnWidths[index];
-      doc.rect(x, y, width, rowHeight).stroke('#000000');
-      doc.fillColor('#000000').font('Helvetica').fontSize(12).text(value, x + 3, y + 4, {
-        width: width - 6,
-        height: rowHeight - 6,
-        ellipsis: true
-      });
-      x += width;
+// PDF - CHANGED TO MYSQL + BLACK TEXT
+app.get('/admin/download/pdf', async (req, res) => {
+  if (req.query.key!== '5169685') return res.status(401).send('401 Unauthorized');
+  try {
+    const [reservations] = await db.execute('SELECT * FROM reservations ORDER BY createdAt DESC');
+    const doc = new PDFDocument({ size: 'A4', margin: 40 });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="reservations.pdf"');
+    doc.pipe(res);
+    doc.fontSize(18).fillColor('black').text("Mama Njie's Reservations", { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(10).fillColor('black');
+    reservations.forEach(r => {
+      doc.text(`Name: ${r.name} | Phone: ${r.phone} | Dish: ${r.dish} | Date: ${r.date || 'N/A'} | Time: ${r.time} | Guests: ${r.guests}`);
+      doc.moveDown(0.5);
     });
-
-    y += rowHeight;
-    x = startX;
-  });
-
-  doc.end();
+    doc.end();
+  } catch (err) {
+    res.status(500).send("Error");
+  }
 });
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
-
-// Simple root endpoint to verify the backend is running
 app.get('/', (req, res) => {
-  res.send('Mama Njie Backend is Running');
+  res.send('Mama Njie Backend is Running with MySQL');
 });
-
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, '404.html'));
 });
-
 app.listen(port, () => {
   console.log(`Mama Njie's Restaurant backend running at http://localhost:${port}`);
 });
