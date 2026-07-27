@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Menu Manager - Mama Njie's</title>
 
-<button class="btn">Download CSV</button>
-<button class="btn">Download PDF</button>
-
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -31,6 +28,8 @@
         cursor: pointer;
         margin-right: 10px;
         margin-bottom: 15px;
+        text-decoration: none;
+        display: inline-block;
     }
     .btn:hover { background: #ffbe4d; }
     
@@ -78,11 +77,19 @@
 </head>
 <body>
 <h1>Menu Manager</h1>
+
+<a href="/admin/download/csv?key=5169685" class="btn">Download CSV</a>
+<a href="/admin/download/pdf?key=5169685" class="btn">Download PDF</a>
+
 <table id="menuTable">
     <tr><th>Dish</th><th>Category</th><th>Price GMD</th><th>Edit</th></tr>
 </table>
 
 <script>
+    // IMPORTANT: CHANGE THESE TO MATCH YOUR RENDER .env
+    const ADMIN_USER = 'admin';
+    const ADMIN_PASS = 'password';
+
     async function loadMenu() {
     const res = await fetch('/api/menu');
     const menu = await res.json();
@@ -93,28 +100,27 @@
             <td>${item.name}</td>
             <td>${item.category}</td>
             <td><input type="number" id="price${item.id}" value="${item.price}" step="0.01"></td>
-            <td><button onclick="savePrice(${item.id})">Save</button></td>
+            <td><button class="save-btn" onclick="savePrice(${item.id})">Save</button></td>
         </tr>`
     });
     }
     
     async function savePrice(id) {
     const newPrice = document.getElementById(`price${id}`).value;
-    await fetch(`/api/menu/${id}`, {
+    const res = await fetch(`/api/menu/update`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ price: newPrice })
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic ' + btoa(ADMIN_USER + ':' + ADMIN_PASS)
+        },
+        body: JSON.stringify({ id: id, price: parseFloat(newPrice) })
     });
-    alert('Price updated!');
+    const data = await res.json();
+    if(data.success) alert('Price updated to GMD ' + newPrice);
+    else alert('Error: ' + data.error);
     }
     
     loadMenu();
-    const urlParams = new URLSearchParams(window.location.search);
-const key = urlParams.get('key');
-if(key !== '5169685') {
-document.body.innerHTML = '<h1>Access Denied</h1>';
-throw new Error('Wrong key');
-}
 </script>
 </body>
 </html>
