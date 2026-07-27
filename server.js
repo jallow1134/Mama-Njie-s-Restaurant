@@ -71,7 +71,7 @@ async function initDB() {
     `);
 
     // Seed menu - FORCE RESET
-    await db.execute(`DELETE FROM menu`); // <-- ADD THIS LINE
+    // await db.execute(`DELETE FROM menu`); // STOPPED RESET
     await db.execute(`
   INSERT INTO menu (name, category, price) VALUES 
   ('Attaya', 'Drink', 12),
@@ -234,6 +234,32 @@ app.get('/api/reservations', basicAuth, async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false });
   }
+});
+app.get('/api/orders', basicAuth, async (req, res) => {
+  try {
+    const [rows] = await db.execute('SELECT * FROM orders ORDER BY created_at DESC');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// ADD THE NEW ROUTE HERE ↓↓↓
+app.post('/api/menu/update', basicAuth, async (req, res) => {
+  try {
+    const { id, price } = req.body;
+    await db.execute('UPDATE menu SET price =? WHERE id =?', [price, id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// Serve pages
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // DELETE - CHANGED TO MYSQL
