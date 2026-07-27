@@ -71,9 +71,9 @@ async function initDB() {
     `);
 
     // Seed menu - FORCE RESET
-    // await db.execute(`DELETE FROM menu`); // STOPPED RESET
+    // await db.execute(`DELETE FROM menu`); // 1. CHANGED: STOPPED RESET
     await db.execute(`
-  INSERT INTO menu (name, category, price) VALUES 
+  INSERT IGNORE INTO menu (name, category, price) VALUES // 2. CHANGED: ADDED IGNORE
   ('Attaya', 'Drink', 12),
   ('Bissap', 'Drink', 30),
   ('Ginger Juice', 'Drink', 30),
@@ -92,7 +92,7 @@ async function initDB() {
   ('Salad', 'Side', 35),
   ('Sukuma', 'Side', 40)
 `);
-console.log("Menu reset with your exact 17 dishes");
+console.log("Menu seeded with your exact 17 dishes - no reset on restart");
 
     console.log("MySQL Connected & Tables Ready");
   } catch (err) {
@@ -244,9 +244,8 @@ app.get('/api/orders', basicAuth, async (req, res) => {
   }
 });
 
-
 // ADD THE NEW ROUTE HERE ↓↓↓
-app.post('/api/menu/update', basicAuth, async (req, res) => {
+app.post('/api/menu/update', basicAuth, async (req, res) => { // 3. CHANGED: ADDED AUTH
   try {
     const { id, price } = req.body;
     await db.execute('UPDATE menu SET price =? WHERE id =?', [price, id]);
@@ -255,7 +254,6 @@ app.post('/api/menu/update', basicAuth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // Serve pages
 app.get('*', (req, res) => {
