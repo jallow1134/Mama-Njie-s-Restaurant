@@ -7,6 +7,13 @@ const axios = require('axios');
 const PDFDocument = require('pdfkit');
 const mysql = require('mysql2/promise'); // <-- ADDED
 
+// WhatsApp function
+async function sendWhatsApp(name, dish, date, time, guests, phone) {
+  const message = `🔔 New Booking!\n\nName: ${name}\nDish: ${dish}\nDate: ${date}\nTime: ${time}\nGuests: ${guests}\nPhone: ${phone}`;
+  const url = `https://api.callmebot.com/whatsapp.php?phone=2207678645&text=${encodeURIComponent(message)}&apikey=YOUR_KEY_HERE`;
+  try { await axios.get(url); } catch(e){ console.log("WhatsApp Error:", e) }
+}
+
 dotenv.config();
 
 const app = express();
@@ -149,21 +156,32 @@ app.post('/reserve', async (req, res) => {
   }
 });
 
-// POST /api/reservations - CHANGED TO MYSQL
 app.post('/api/reservations', async (req, res) => {
-  const { name, email, phone, dish, time, guests, notes } = req.body;
-  if (!name ||!email ||!phone ||!time ||!guests) {
-    return res.status(400).json({ success: false, message: 'Name, email, phone, time, and guest count are required.' });
-  }
   try {
-    const [result] = await db.execute(
-      'INSERT INTO reservations (name, email, phone, dish, time, guests, notes) VALUES (?,?,?,?,?,?,?)',
-      [name.trim(), email.trim(), phone.trim(), dish? dish.trim() : 'Not specified', time.trim(), Number(guests), notes? notes.trim() : '']
+    const { name, phone, dish, date, time, guests, notes } = req.body;
+
+    // 1. ANTI-DUPLICATE CHECK - stops double clicks
+    const [dup] = await db.execute(
+      'SELECT id FROM reservations WHERE phone =? AND date =? AND time =? AND createdAt > NOW() - INTERVAL 10 MINUTE',
+      [phone, date, time]
     );
-    const reservation = { id: result.insertId, name, email, phone, dish, time, guests, notes, createdAt: new Date().toISOString() };
-    sendWhatsAppAlert(reservation).catch(() => {});
-    sendReservationNotification(reservation).catch(() => {});
+    if(dup.length > 0) {
+      return res.status(400).json({ success: false, message: 'You already booked this slot' });
+    }
+
+    // 2. INSERT NEW BOOKING
+    const [result] = await db.execute(
+      'INSERT INTO reservations (name, phone, dish, date, time, guests, notes) VALUES (?,?,?,?,?,?,?)',
+      [name, phone, dish, date, time, guests, notes]
+    );
+
+    const reservation = { id: result.insertId, name, phone, dish, date, time, guests, notes };
+
+    // 3. SEND WHATSAPP TO MAMA NJIE
+    await sendWhatsApp(name, dish, date, time, guests, phone);
+
     return res.status(201).json({ success: true, reservation });
+
   } catch (err) {
     console.error(err);
     return res.status(500).json({ success: false, message: 'Database error' });
