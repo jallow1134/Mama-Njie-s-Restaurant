@@ -70,25 +70,32 @@ async function initDB() {
     `);
 
     await db.execute(`
-      INSERT IGNORE INTO menu (name, category, price) VALUES
-      ('Attaya', 'Drink', 12),
-      ('Bissap', 'Drink', 30),
-      ('Ginger Juice', 'Drink', 30),
-      ('Afra', 'Main', 75),
-      ('Benachin', 'Main', 95),
-      ('Caldo', 'Main', 88),
-      ('Domoda', 'Main', 85),
-      ('Fish Yassa', 'Main', 100),
-      ('Jollof Rice', 'Main', 80),
-      ('Yassa', 'Main', 80),
-      ('Beef', 'Protein', 60),
-      ('Chicken', 'Protein', 80),
-      ('Chicken Yassa', 'Protein', 100),
-      ('Fish', 'Protein', 120),
-      ('Fried Plantain', 'Side', 60),
-      ('Salad', 'Side', 35),
-      ('Sukuma', 'Side', 40)
-    `);
+  INSERT IGNORE INTO menu (name, category, price) VALUES
+  /* Chef Specials */
+  ('Mama Njie\'s Special', 'Chef Specials', 120),
+  ('Mama Njie\'s Grilled Fish', 'Chef Specials', 95),
+  ('Mama Njie\'s Peanut Stew', 'Chef Specials', 85),
+  ('Mama Njie\'s Jollof Feast', 'Chef Specials', 80),
+  /* Main Dishes */
+  ('Jollof Rice', 'Main Dishes', 80),
+  ('Seafood Okra', 'Main Dishes', 95),
+  ('Pepper Soup', 'Main Dishes', 75),
+  ('Benachin', 'Main Dishes', 95),
+  ('Caldo', 'Main Dishes', 88),
+  ('Chewdiw', 'Main Dishes', 90),
+  ('Domoda', 'Main Dishes', 85),
+  ('Mbahal', 'Main Dishes', 90),
+  ('Moimoi', 'Main Dishes', 65),
+  ('Oyster Stew', 'Main Dishes', 85),
+  ('Plasas', 'Main Dishes', 70),
+  ('Supakanja', 'Main Dishes', 75),
+  ('Yassa', 'Main Dishes', 80),
+  /* Sides & Drinks */
+  ('Vegetable Platter', 'Sides & Drinks', 65),
+  ('Attaya', 'Sides & Drinks', 12),
+  ('Fish Balls', 'Sides & Drinks', 35),
+  ('Tapalapa', 'Sides & Drinks', 15)
+`);
     console.log("Menu seeded with your exact 17 dishes");
     console.log("MySQL Connected & Tables Ready");
   } catch (err) {
