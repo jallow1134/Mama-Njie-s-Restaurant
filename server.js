@@ -71,8 +71,8 @@ async function initDB() {
     `);
 
     // Seed menu - FORCE RESET
-    // await db.execute(`DELETE FROM menu`); // 1. CHANGED: STOPPED RESET
-    await db.execute(`
+// await db.execute(`DELETE FROM menu`); // STOPPED RESET
+await db.execute(`
   INSERT IGNORE INTO menu (name, category, price) VALUES
   ('Attaya', 'Drink', 12),
   ('Bissap', 'Drink', 30),
@@ -93,7 +93,6 @@ async function initDB() {
   ('Sukuma', 'Side', 40)
 `);
 console.log("Menu seeded with your exact 17 dishes - no reset on restart");
-
     console.log("MySQL Connected & Tables Ready");
   } catch (err) {
     console.error("DB Error:", err);
