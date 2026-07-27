@@ -42,6 +42,7 @@ const db = mysql.createPool({
 });
 
 // 2. CREATE TABLES ON START
+// 2. CREATE TABLES ON START
 async function initDB() {
   try {
     await db.execute(`
@@ -62,7 +63,7 @@ async function initDB() {
     await db.execute(`
       CREATE TABLE IF NOT EXISTS menu (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
+        name VARCHAR(100) NOT NULL UNIQUE,  /* ADDED UNIQUE HERE */
         category VARCHAR(50),
         price DECIMAL(10,2) NOT NULL
       )
@@ -95,7 +96,6 @@ async function initDB() {
   }
 }
 initDB();
-
 function basicAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader ||!authHeader.startsWith('Basic ')) {
