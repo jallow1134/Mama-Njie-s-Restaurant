@@ -128,13 +128,27 @@ app.get('/reserve', (req, res) => {
   res.send(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Reservation API</title></head><body><h1>API Running</h1></body></html>`);
 });
 
-// POST /reserve - CHANGED TO MYSQL
+// POST /reserve - WITH DUPLICATE CHECK
 app.post('/reserve', async (req, res) => {
   const { name, phone, dish, time, guests, notes } = req.body;
   if (!name ||!phone ||!time ||!guests) {
     return res.status(400).json({ success: false, message: 'Name, phone, time, and guest count are required.' });
   }
   try {
+    // 1. CHECK FOR DUPLICATE: Same phone + Same time
+    const [existing] = await db.execute(
+      'SELECT * FROM reservations WHERE phone =? AND time =?',
+      [phone.trim(), time.trim()]
+    );
+
+    if (existing.length > 0) {
+      return res.status(409).json({ 
+        success: false, 
+        message: 'You already have a booking for this time. Please choose a different time.' 
+      });
+    }
+
+    // 2. IF NO DUPLICATE, INSERT
     const [result] = await db.execute(
       'INSERT INTO reservations (name, email, phone, dish, time, guests, notes) VALUES (?,?,?,?,?,?,?)',
       [name.trim(), '', phone.trim(), dish? dish.trim() : 'Not specified', time.trim(), Number(guests), notes? notes.trim() : '']
@@ -149,13 +163,27 @@ app.post('/reserve', async (req, res) => {
   }
 });
 
-// POST /api/reservations - CHANGED TO MYSQL
+// POST /api/reservations - WITH DUPLICATE CHECK
 app.post('/api/reservations', async (req, res) => {
   const { name, email, phone, dish, time, guests, notes } = req.body;
   if (!name ||!email ||!phone ||!time ||!guests) {
     return res.status(400).json({ success: false, message: 'Name, email, phone, time, and guest count are required.' });
   }
   try {
+    // 1. CHECK FOR DUPLICATE: Same phone + Same time
+    const [existing] = await db.execute(
+      'SELECT * FROM reservations WHERE phone =? AND time =?',
+      [phone.trim(), time.trim()]
+    );
+
+    if (existing.length > 0) {
+      return res.status(409).json({ 
+        success: false, 
+        message: 'You already have a booking for this time. Please choose a different time.' 
+      });
+    }
+
+    // 2. IF NO DUPLICATE, INSERT
     const [result] = await db.execute(
       'INSERT INTO reservations (name, email, phone, dish, time, guests, notes) VALUES (?,?,?,?,?,?,?)',
       [name.trim(), email.trim(), phone.trim(), dish? dish.trim() : 'Not specified', time.trim(), Number(guests), notes? notes.trim() : '']
