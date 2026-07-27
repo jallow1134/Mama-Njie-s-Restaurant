@@ -73,7 +73,7 @@ async function initDB() {
     // Seed menu if empty
     const [rows] = await db.execute('SELECT COUNT(*) as count FROM menu');
     if(rows[0].count === 0) {
-     await db.execute(`DELETE FROM menu`);
+    await db.execute(`DELETE FROM menu`);
 await db.execute(`
   INSERT INTO menu (name, category, price, description, image) VALUES
   ('Jollof Rice','Main Dishes',80,'Long-grain rice cooked in a spiced tomato stew with peppers and tender protein.','jollof.jpg'),
