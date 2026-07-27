@@ -74,14 +74,15 @@ async function initDB() {
     const [rows] = await db.execute('SELECT COUNT(*) as count FROM menu');
     if(rows[0].count === 0) {
       await db.execute(`
-        INSERT INTO menu (name, category, price) VALUES
-        ('Jollof Rice','Main',80), ('Benachin','Main',90), ('Fish Yassa','Main',120),
-        ('Chicken Yassa','Main',110), ('Domoda','Main',85), ('Mafe','Main',85),
-        ('Afra','Main',75), ('Sukuma','Side',40), ('Fried Plantain','Side',50),
-        ('Attaya','Drink',25), ('Bissap','Drink',30), ('Ginger Juice','Drink',30),
-        ('Beef','Protein',60), ('Chicken','Protein',50), ('Fish','Protein',70),
-        ('Spring Rolls','Starter',45), ('Samosa','Starter',40), ('Salad','Side',35)
-      `);
+  INSERT INTO menu (name, category, price) VALUES
+  ('Jollof Rice','Main',80), ('Benachin','Main',90), ('Domoda','Main',85),
+  ('Chew Diw','Main',95), ('Caldo','Main',100), ('Pepper Soup','Main',110),
+  ('Oyster','Main',120), ('Supakanja','Main',85), ('Plasas','Main',80),
+  ('Yassa','Main',110), ('Akara','Starter',30), ('Moimoi','Starter',35),
+  ('Fishballs','Starter',40), ('Tapalapa','Side',25), ('Okra','Side',30),
+  ('Mbahal','Side',35), ('Attaya','Drink',25)
+`);
+console.log("Menu seeded with 17 dishes");
       console.log("Menu seeded with 18 dishes");
     }
 
