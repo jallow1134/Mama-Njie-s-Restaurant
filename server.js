@@ -70,34 +70,29 @@ async function initDB() {
       )
     `);
 
-    // Seed menu if empty
-    const [rows] = await db.execute('SELECT COUNT(*) as count FROM menu');
-    if(rows[0].count === 0) {
-    await db.execute(`DELETE FROM menu`);
-await db.execute(`
-  INSERT INTO menu (name, category, price, description, image) VALUES
-  ('Jollof Rice','Main Dishes',80,'Long-grain rice cooked in a spiced tomato stew with peppers and tender protein.','jollof.jpg'),
-  ('Seafood Okra','Main Dishes',95,'Okra stew with fresh seafood, tomatoes, and a savory, aromatic broth.','okra.jpg'),
-  ('Pepper Soup','Main Dishes',75,'Light, spicy broth with fish or meat, ginger, and local pepper for a warming finish.','peppersoup.jpg'),
-  ('Benachin','Main Dishes',95,'One-pot rice with fish, vegetables, and smoky seasoning for rich, layered flavor.','benachin.jpg'),
-  ('Caldo','Main Dishes',88,'Fresh fish in a tangy lemon broth with herbs and vegetables.','caldo.jpg'),
-  ('Chewdiw','Main Dishes',90,'Smoked fish prepared with vegetables and fragrant local spices.','chewdiw.jpg'),
-  ('Domoda','Main Dishes',85,'Savory groundnut stew with meat, sweet potatoes, and greens in a creamy peanut sauce.','domoda.jpg'),
-  ('Mbahal','Main Dishes',90,'Smoked fish cooked with groundnuts, onions, and aromatic spices.','mbahal.jpg'),
-  ('Moimoi','Main Dishes',65,'Steamed bean pudding made from ground black-eyed peas, onions, and chili.','moimoi.jpg'),
-  ('Oyster Stew','Main Dishes',85,'Oysters simmered in a rich, peppery sauce with fresh herbs.','oyster.jpg'),
-  ('Plasas','Main Dishes',70,'Leafy greens cooked in palm oil with rice, tomatoes, and onions.','plasas.jpg'),
-  ('Supakanja','Main Dishes',75,'Okra stew made with palm oil, smoked fish, and bold, warming spices.','supakanja.jpg'),
-  ('Yassa','Main Dishes',80,'Chicken or fish marinated in lemon, onions, and mustard, then slow-cooked for bright, savory flavor.','yassa.jpg'),
-  ('Vegetable Platter','Sides & Drinks',65,'Seasonal vegetables grilled or steamed with house spices and a citrus finish.','akara.jpg'),
-  ('Attaya','Sides & Drinks',12,'Traditional sweet Gambian tea brewed with green tea leaves, sugar, and aromatic herbs.','attaya.jpg'),
-  ('Fish Balls','Sides & Drinks',35,'Crispy fried fish balls seasoned with herbs and served with a tangy dipping sauce.','fishballs.jpg'),
-  ('Tapalapa','Sides & Drinks',15,'Freshly baked Gambian bread with a crisp crust and soft interior.','tapalapa.jpg')
+    // Seed menu - FORCE RESET
+    await db.execute(`DELETE FROM menu`); // <-- ADD THIS LINE
+    await db.execute(`
+  INSERT INTO menu (name, category, price) VALUES 
+  ('Attaya', 'Drink', 12),
+  ('Bissap', 'Drink', 30),
+  ('Ginger Juice', 'Drink', 30),
+  ('Afra', 'Main', 75),
+  ('Benachin', 'Main', 95),
+  ('Caldo', 'Main', 88),
+  ('Domoda', 'Main', 85),
+  ('Fish Yassa', 'Main', 100),
+  ('Jollof Rice', 'Main', 80),
+  ('Yassa', 'Main', 80),
+  ('Beef', 'Protein', 60),
+  ('Chicken', 'Protein', 80),
+  ('Chicken Yassa', 'Protein', 100),
+  ('Fish', 'Protein', 120),
+  ('Fried Plantain', 'Side', 60),
+  ('Salad', 'Side', 35),
+  ('Sukuma', 'Side', 40)
 `);
 console.log("Menu reset with your exact 17 dishes");
-console.log("Menu seeded with 17 dishes");
-      console.log("Menu seeded with 18 dishes");
-    }
 
     console.log("MySQL Connected & Tables Ready");
   } catch (err) {
