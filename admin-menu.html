@@ -4,13 +4,76 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Menu Manager - Mama Njie's</title>
+
+<button class="btn">Download CSV</button>
+<button class="btn">Download PDF</button>
+
 <style>
-    body { font-family: Arial; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-    th { background: #333; color: white; }
-    input { width: 80px; padding: 5px; }
-    button { padding: 6px 12px; background: green; color: white; border: none; cursor: pointer; }
+    body {
+        font-family: Arial, sans-serif;
+        background: #0B1A2F; /* dark navy background */
+        color: #fff;
+        margin: 0;
+        padding: 20px;
+    }
+    h1 {
+        color: #fff;
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+    .btn {
+        background: #FFA500; /* orange buttons */
+        color: #000;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-right: 10px;
+        margin-bottom: 15px;
+    }
+    .btn:hover { background: #ffbe4d; }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #0B1A2F;
+        border: 1px solid #1e3a5f;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    th {
+        background: #FFA500; /* orange header */
+        color: #000;
+        padding: 12px;
+        text-align: left;
+        font-weight: bold;
+    }
+    td {
+        padding: 12px;
+        border: 1px solid #1e3a5f;
+        color: #fff;
+    }
+    tr:nth-child(even) {
+        background: #112840; /* slight row stripe */
+    }
+    input {
+        background: #1e3a5f;
+        color: #fff;
+        border: 1px solid #FFA500;
+        border-radius: 4px;
+        padding: 6px;
+        width: 90px;
+    }
+    .save-btn {
+        background: #FFA500;
+        color: #000;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+    }
 </style>
 </head>
 <body>
