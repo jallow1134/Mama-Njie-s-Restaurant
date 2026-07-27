@@ -73,7 +73,7 @@ async function initDB() {
     // Seed menu - FORCE RESET
     // await db.execute(`DELETE FROM menu`); // 1. CHANGED: STOPPED RESET
     await db.execute(`
-  INSERT IGNORE INTO menu (name, category, price) VALUES // 2. CHANGED: ADDED IGNORE
+  INSERT IGNORE INTO menu (name, category, price) VALUES
   ('Attaya', 'Drink', 12),
   ('Bissap', 'Drink', 30),
   ('Ginger Juice', 'Drink', 30),
