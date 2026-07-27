@@ -22,7 +22,7 @@ const SMTP_USER = process.env.SMTP_USER || '';
 const SMTP_PASS = process.env.SMTP_PASS || '';
 
 const mailTransport = SMTP_HOST && SMTP_USER && SMTP_PASS
- ? nodemailer.createTransport({
+? nodemailer.createTransport({
       host: SMTP_HOST,
       port: SMTP_PORT,
       secure: SMTP_PORT === 465,
@@ -41,9 +41,10 @@ const db = mysql.createPool({
   connectionLimit: 10
 });
 
-// 2. CREATE TABLE ON START
+// 2. CREATE TABLES ON START
 async function initDB() {
   try {
+    // Reservations table
     await db.execute(`
       CREATE TABLE IF NOT EXISTS reservations (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -58,7 +59,33 @@ async function initDB() {
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log("MySQL Connected & Table Ready");
+
+    // Menu table - THIS WAS MISSING
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS menu (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        category VARCHAR(50),
+        price DECIMAL(10,2) NOT NULL
+      )
+    `);
+
+    // Seed menu if empty
+    const [rows] = await db.execute('SELECT COUNT(*) as count FROM menu');
+    if(rows[0].count === 0) {
+      await db.execute(`
+        INSERT INTO menu (name, category, price) VALUES
+        ('Jollof Rice','Main',80), ('Benachin','Main',90), ('Fish Yassa','Main',120),
+        ('Chicken Yassa','Main',110), ('Domoda','Main',85), ('Mafe','Main',85),
+        ('Afra','Main',75), ('Sukuma','Side',40), ('Fried Plantain','Side',50),
+        ('Attaya','Drink',25), ('Bissap','Drink',30), ('Ginger Juice','Drink',30),
+        ('Beef','Protein',60), ('Chicken','Protein',50), ('Fish','Protein',70),
+        ('Spring Rolls','Starter',45), ('Samosa','Starter',40), ('Salad','Side',35)
+      `);
+      console.log("Menu seeded with 18 dishes");
+    }
+
+    console.log("MySQL Connected & Tables Ready");
   } catch (err) {
     console.error("DB Error:", err);
   }
@@ -135,20 +162,16 @@ app.post('/reserve', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Name, phone, time, and guest count are required.' });
   }
   try {
-    // 1. CHECK FOR DUPLICATE: Same phone + Same time
     const [existing] = await db.execute(
       'SELECT * FROM reservations WHERE phone =? AND time =?',
       [phone.trim(), time.trim()]
     );
-
     if (existing.length > 0) {
-      return res.status(409).json({ 
-        success: false, 
-        message: 'You already have a booking for this time. Please choose a different time.' 
+      return res.status(409).json({
+        success: false,
+        message: 'You already have a booking for this time. Please choose a different time.'
       });
     }
-
-    // 2. IF NO DUPLICATE, INSERT
     const [result] = await db.execute(
       'INSERT INTO reservations (name, email, phone, dish, time, guests, notes) VALUES (?,?,?,?,?,?,?)',
       [name.trim(), '', phone.trim(), dish? dish.trim() : 'Not specified', time.trim(), Number(guests), notes? notes.trim() : '']
@@ -170,20 +193,16 @@ app.post('/api/reservations', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Name, email, phone, time, and guest count are required.' });
   }
   try {
-    // 1. CHECK FOR DUPLICATE: Same phone + Same time
     const [existing] = await db.execute(
       'SELECT * FROM reservations WHERE phone =? AND time =?',
       [phone.trim(), time.trim()]
     );
-
     if (existing.length > 0) {
-      return res.status(409).json({ 
-        success: false, 
-        message: 'You already have a booking for this time. Please choose a different time.' 
+      return res.status(409).json({
+        success: false,
+        message: 'You already have a booking for this time. Please choose a different time.'
       });
     }
-
-    // 2. IF NO DUPLICATE, INSERT
     const [result] = await db.execute(
       'INSERT INTO reservations (name, email, phone, dish, time, guests, notes) VALUES (?,?,?,?,?,?,?)',
       [name.trim(), email.trim(), phone.trim(), dish? dish.trim() : 'Not specified', time.trim(), Number(guests), notes? notes.trim() : '']
@@ -284,10 +303,8 @@ app.get('/api/health', (req, res) => {
 app.get('/', (req, res) => {
   res.send('Mama Njie Backend is Running with MySQL');
 });
-app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, '404.html'));
-});
-// GET all menu items
+
+// ===== MENU API - ADDED =====
 app.get('/api/menu', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM menu ORDER BY category, name');
@@ -297,16 +314,20 @@ app.get('/api/menu', async (req, res) => {
   }
 });
 
-// UPDATE menu price
 app.post('/api/menu/:id', async (req, res) => {
   const { id } = req.params;
   const { price } = req.body;
   try {
     await db.query('UPDATE menu SET price =? WHERE id =?', [price, id]);
-    res.json({ success: true });
+    res.json({ success: true, message: "Price updated!" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+// ===== END MENU API =====
+
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, '404.html'));
 });
 
 app.listen(port, () => {
