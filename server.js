@@ -287,6 +287,28 @@ app.get('/', (req, res) => {
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, '404.html'));
 });
+// GET all menu items
+app.get('/api/menu', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM menu ORDER BY category, name');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// UPDATE menu price
+app.post('/api/menu/:id', async (req, res) => {
+  const { id } = req.params;
+  const { price } = req.body;
+  try {
+    await db.query('UPDATE menu SET price =? WHERE id =?', [price, id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Mama Njie's Restaurant backend running at http://localhost:${port}`);
 });

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu Manager - Mama Njie's</title>
+    body { font-family: Arial; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+    th { background: #333; color: white; }
+    input { width: 80px; padding: 5px; }
+    button { padding: 6px 12px; background: green; color: white; border: none; cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>Menu Manager</h1>
+<table id="menuTable">
+    <tr><th>Dish</th><th>Category</th><th>Price GMD</th><th>Edit</th></tr>
+</table>
+
+<script>
+    async function loadMenu() {
+    const res = await fetch('/api/menu');
+    const menu = await res.json();
+    const table = document.getElementById('menuTable');
+    menu.forEach(item => {
+        table.innerHTML += `
+        <tr>
+            <td>${item.name}</td>
+            <td>${item.category}</td>
+            <td><input type="number" id="price${item.id}" value="${item.price}" step="0.01"></td>
+            <td><button onclick="savePrice(${item.id})">Save</button></td>
+        </tr>`
+    });
+    }
+    
+    async function savePrice(id) {
+    const newPrice = document.getElementById(`price${id}`).value;
+    await fetch(`/api/menu/${id}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ price: newPrice })
+    });
+    alert('Price updated!');
+    }
+    
+    loadMenu();
+</script>
+</body>
+</html>
