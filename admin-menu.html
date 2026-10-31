@@ -78,48 +78,78 @@
 <body>
 <h1>Menu Manager</h1>
 
-<a href="/admin/download/csv?key=5169685" class="btn">Download CSV</a>
-<a href="/admin/download/pdf?key=5169685" class="btn">Download PDF</a>
+<a href="/admin/download/csv" class="btn">Download CSV</a>
+<a href="/admin/download/pdf" class="btn">Download PDF</a>
+<p id="menuStatus" role="status" aria-live="polite"></p>
 
 <table id="menuTable">
     <tr><th>Dish</th><th>Category</th><th>Price GMD</th><th>Edit</th></tr>
 </table>
 
 <script>
-    // IMPORTANT: CHANGE THESE TO MATCH YOUR RENDER .env
-    const ADMIN_USER = 'admin';
-    const ADMIN_PASS = 'password';
-
     async function loadMenu() {
-    const res = await fetch('/api/menu');
-    const menu = await res.json();
-    const table = document.getElementById('menuTable');
-    menu.forEach(item => {
-        table.innerHTML += `
-        <tr>
-            <td>${item.name}</td>
-            <td>${item.category}</td>
-            <td><input type="number" id="price${item.id}" value="${item.price}" step="0.01"></td>
-            <td><button class="save-btn" onclick="savePrice(${item.id})">Save</button></td>
-        </tr>`
-    });
+        const table = document.getElementById('menuTable');
+        const status = document.getElementById('menuStatus');
+        try {
+            const response = await fetch('/api/menu');
+            if (!response.ok) throw new Error('Unable to load menu.');
+            const menu = await response.json();
+            table.replaceChildren(table.rows[0]);
+
+            menu.forEach(item => {
+                const row = table.insertRow();
+                row.insertCell().textContent = item.name;
+                row.insertCell().textContent = item.category;
+
+                const priceCell = row.insertCell();
+                const priceInput = document.createElement('input');
+                priceInput.type = 'number';
+                priceInput.min = '0';
+                priceInput.max = '1000000';
+                priceInput.step = '0.01';
+                priceInput.value = item.price;
+                priceInput.setAttribute('aria-label', `Price for ${item.name}`);
+                priceCell.append(priceInput);
+
+                const actionCell = row.insertCell();
+                const saveButton = document.createElement('button');
+                saveButton.type = 'button';
+                saveButton.className = 'save-btn';
+                saveButton.textContent = 'Save';
+                saveButton.addEventListener('click', () => savePrice(item.id, priceInput, saveButton));
+                actionCell.append(saveButton);
+            });
+        } catch (error) {
+            status.textContent = error.message;
+        }
     }
-    
-    async function savePrice(id) {
-    const newPrice = document.getElementById(`price${id}`).value;
-    const res = await fetch(`/api/menu/update`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Basic ' + btoa(ADMIN_USER + ':' + ADMIN_PASS)
-        },
-        body: JSON.stringify({ id: id, price: parseFloat(newPrice) })
-    });
-    const data = await res.json();
-    if(data.success) alert('Price updated to GMD ' + newPrice);
-    else alert('Error: ' + data.error);
+
+    async function savePrice(id, input, button) {
+        const price = Number(input.value);
+        const status = document.getElementById('menuStatus');
+        if (!Number.isFinite(price) || price < 0 || price > 1000000) {
+            status.textContent = 'Enter a valid non-negative price.';
+            input.focus();
+            return;
+        }
+
+        button.disabled = true;
+        try {
+            const response = await fetch('/api/menu/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, price })
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.error || 'Unable to save price.');
+            status.textContent = `Price saved: GMD ${price.toFixed(2)}`;
+        } catch (error) {
+            status.textContent = error.message;
+        } finally {
+            button.disabled = false;
+        }
     }
-    
+
     loadMenu();
 </script>
 </body>

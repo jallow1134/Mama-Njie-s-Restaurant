@@ -11,6 +11,39 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
     });
 });
 
+// Mobile navigation toggle
+document.querySelectorAll('.navbar').forEach(navbar => {
+    const toggle = navbar.querySelector('.nav-toggle');
+    const menu = navbar.querySelector('.nav-menu');
+
+    if (!toggle || !menu) return;
+
+    const setMenuOpen = isOpen => {
+        toggle.setAttribute('aria-expanded', String(isOpen));
+        toggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+        menu.classList.toggle('is-open', isOpen);
+    };
+
+    toggle.addEventListener('click', () => {
+        setMenuOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    menu.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => setMenuOpen(false));
+    });
+
+    navbar.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            setMenuOpen(false);
+            toggle.focus();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) setMenuOpen(false);
+    });
+});
+
 // Back to Top Button
 const backToTopBtn = document.getElementById('backToTopBtn');
 if (backToTopBtn) {
@@ -62,8 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
             notes,
             createdAt: new Date().toISOString()
         };
-
-        localStorage.setItem('latestReservation', JSON.stringify(reservationData));
 
         try {
             const response = await fetch('https://mama-njie-s-restaurant-7kv7.onrender.com/reserve', {

@@ -95,26 +95,43 @@ When the form is submitted, reservation details are stored on the backend and th
 
 ## 🔐 Admin Dashboard
 
-- Admin dashboard available at `/admin`
-- Protected by HTTP Basic Auth
-- Default credentials are `admin` / `password`
-- Use `.env` to configure `ADMIN_USERNAME` and `ADMIN_PASSWORD`
-- Admin dashboard supports deleting reservations and logging out
+- Admin dashboard is available at `/admin` and the menu manager at `/admin-menu.html`.
+- Both are protected by HTTP Basic Auth and require credentials from the environment.
+- There are no default admin credentials. The server will refuse to start unless `ADMIN_USERNAME` and an `ADMIN_PASSWORD` of at least 16 characters are configured.
+- Admin API and export requests are authenticated and rate limited. Do not put credentials or API keys in HTML, query strings, or source control.
 
 ## Environment Variables
 
-Create a `.env` file with:
+Create an untracked `.env` file for local development and set the same values in the production host's secret/environment settings:
+The backend requires Node.js 20 or newer.
 
 ```text
+ADMIN_USERNAME=choose-a-private-username
+ADMIN_PASSWORD=replace-with-a-long-random-secret-at-least-24-characters
+NODE_ENV=production
+DB_HOST=your-database-host
+DB_PORT=3306
+DB_USER=your-limited-database-user
+DB_PASS=your-database-password
+DB_NAME=your-database-name
+DB_SSL=true
+DB_SSL_CA=
+DB_INIT_ON_START=false
+REDIS_URL=rediss://your-redis-provider-connection-url
+ALLOWED_ORIGINS=https://jallow1134.github.io
+WHATSAPP_PHONE=2200000000
+CALLMEBOT_API_KEY=your-callmebot-api-key
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=your-smtp-user
 SMTP_PASS=your-smtp-password
 OWNER_EMAIL=owner@example.com
 FROM_EMAIL=mamanjies@example.com
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=password
 ```
+
+Before deploying, run `database/schema.sql` once using a database owner/migration account. Create a separate runtime account and grant it only `SELECT`, `INSERT`, `UPDATE`, and `DELETE` on the `reservations` and `menu` tables. Do not grant the runtime account `CREATE`, `ALTER`, `DROP`, or global privileges.
+
+Set `NODE_ENV=production` and all required secrets in the Render environment settings. Production startup requires MySQL TLS verification (`DB_SSL=true`) and a TLS Redis URL (`rediss://`); startup fails rather than falling back to unencrypted database access or per-instance rate limits. Use the CA certificate supplied by the database host for `DB_SSL_CA` when required. Configure Redis as a private service and use its TLS connection URL. Set a unique random admin password and rotate any credentials that may have been committed or deployed previously. The API permits the published GitHub Pages origin and local development by default; add any other exact website origins to `ALLOWED_ORIGINS` as a comma-separated list.
 
 ---
 
