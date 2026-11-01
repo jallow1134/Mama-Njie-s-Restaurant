@@ -21,48 +21,27 @@ Here's how everything is organized. It's simple and makes sense:
 
 ```
 Mama Njie's Restaurant/
-│
-├── index.html                 # The homepage
-├── about.html                 # More about the restaurant
-├── menu.html                  # Food menu and dish details
-├── contact.html               # Contact details and location
-├── reservation.html           # Reservation form
-├── server.js                  # Node.js backend API and reservation storage
-├── package.json               # Node dependencies and scripts
-├── package-lock.json          # Installed dependency lockfile
-├── .env                       # Environment variables (optional)
-├── data/
-│   └── reservations.json      # Stored reservation records
-│
-├── css/
-│   └── styles.css             # Styling, layout, and responsive rules
-│
-├── js/
-│   └── script.js              # Smooth scroll, back-to-top, and reservation logic
-│
-├── images/                    # Food, owner, and background images
-│   ├── mama-njie.jpg          # Mama Njie herself
-│   ├── domoda.jpg             # Peanut stew
-│   ├── benachin.jpg           # One-pot rice dish
-   ├── yassa.jpg              # Lemony, savory dish
-   ├── jollof.jpg             # Spiced rice dish
-   ├── supakanja.jpg          # Okra stew
-   ├── mbahal.jpg             # Smoked fish specialty
-   ├── caldo.jpg              # Fish stew
-   ├── chewdiw.jpg            # Catfish-style dish
-   ├── oyster.jpg             # Oyster stew
-   ├── peppersoup.jpg         # Spicy fish soup
-   ├── plasas.jpg             # Greens with rice
-   ├── okra.jpg               # Okra-based dish
-   ├── tapalapa.jpg           # Local bread
-   ├── attaya.jpg             # Traditional tea
-   ├── fishballs.jpg          # Fried fish balls
-   ├── akara.jpg              # Bean fritters
-   ├── moimoi.jpg             # Steamed bean pudding
-   ├── background.jpg         # Page background image
-   └── [supporting images]
-│
-└── PROJECT_DOCUMENTATION.md   # This file
+├── backend/
+│   ├── server.js
+│   ├── admin-menu.html
+│   ├── database/schema.sql
+│   ├── data/reservations.json
+│   └── qr.py
+├── frontend/
+│   ├── index.html, about.html, menu.html, contact.html
+│   ├── reservation.html, reservations.html, 404.html
+│   ├── css/styles.css
+│   ├── js/script.js
+│   ├── images/
+│   └── route redirect folders
+├── docs/
+│   ├── PROJECT_DOCUMENTATION.md
+│   ├── HTML_ELEMENTS_GUIDE.md
+│   └── qr-code.md
+├── .github/workflows/
+├── package.json
+├── package-lock.json
+└── .env
 ```
 
 ---
@@ -187,7 +166,7 @@ I improved the reservation process to make it easier to use and more informative
 This was a key improvement. The reservation form now sends booking data via `fetch()` to a backend endpoint instead of relying on manual messaging. The backend saves reservations and supports CORS so the site and the API can work together cleanly.
 
 ✓ Updated the reservation handler to `_POST_` JSON to the `/reserve` backend endpoint
-✓ Added CORS support in `server.js` so the frontend can talk to the API from localhost or production
+✓ Added CORS support in `backend/server.js` so the frontend can talk to the API from localhost or production
 ✓ Added a simple root endpoint that returns `Mama Njie Backend is Running` for health checks
 ✓ The form now submits without a full page reload and shows success/error feedback
 
@@ -360,7 +339,7 @@ Good design isn't just about looking pretty. It's about guiding people's eyes, m
 
 ### Step 5: Adding Images
 **What I Did:**
-- Organized all the food images into the `images/` folder
+- Organized all the food images into the `frontend/images/` folder
 - Added Mama Njie's photo to make the site more personal
 - Created a background image for depth
 - Added alt text to every image for accessibility
@@ -496,11 +475,11 @@ Here's what I touched and why:
 
 5. **reservation.html** - Applied formatting improvements to headings and subtitles. Also removed the date field to simplify the reservation process. The form is now leaner and faster for customers to fill out.
 
-6. **css/styles.css** - Added new styles for the back-to-top button with gradient background, hover effects, and smooth animations. The button looks great and provides a polished feel. Also cleaned up and reorganized existing styles.
+6. **frontend/css/styles.css** - Added new styles for the back-to-top button with gradient background, hover effects, and smooth animations. The button looks great and provides a polished feel. Also cleaned up and reorganized existing styles.
 
-7. **js/script.js** - Enhanced the back-to-top button functionality and completely rewrote the reservation handler. It now captures all form data and creates a formatted reservation message that automatically opens WhatsApp with the details pre-filled. The message gets sent to +2205169685, making the reservation process seamless and immediate.
+7. **frontend/js/script.js** - Enhanced the back-to-top button functionality and completely rewrote the reservation handler. It now captures all form data and creates a formatted reservation message that automatically opens WhatsApp with the details pre-filled. The message gets sent to +2205169685, making the reservation process seamless and immediate.
 
-8. **images/** - Renamed 14 image files to follow a consistent naming system
+8. **frontend/images/** - Renamed 14 image files to follow a consistent naming system
 
 ---
 

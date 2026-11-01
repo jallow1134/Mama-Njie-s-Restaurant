@@ -67,6 +67,16 @@ body {
     font-size: 1.8rem;
     font-weight: bold;
     letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.logo-mark {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 50%;
 }
 
 .nav-menu {

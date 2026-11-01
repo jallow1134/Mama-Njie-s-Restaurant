@@ -5,17 +5,13 @@ A responsive Gambian restaurant website with home, about, menu, contact, and res
 ## 📁 Project Structure
 
 ```
-Mama Njie's Restaurant/
-├── index.html             # Main homepage
-├── about.html             # Restaurant story and owner profile
-├── menu.html              # Food menu with categories and images
-├── contact.html           # Contact details and location
-├── reservation.html       # Reservation form and WhatsApp integration
-├── css/
-│   └── styles.css         # Styling and responsive design
-├── js/
-│   └── script.js          # Smooth scroll, back-to-top, and reservation handling
-└── images/                # Food and brand images
+repository root/
+├── backend/               # Express API, admin page, database schema, and data
+├── frontend/              # Public HTML pages, CSS, JavaScript, and images
+├── docs/                  # Project and QR-code guides
+├── .github/workflows/     # GitHub Pages deployment
+├── package.json           # Root scripts used by Render
+└── README.md
 ```
 
 ## ✨ Features
@@ -29,21 +25,22 @@ Mama Njie's Restaurant/
 - **Reservation System** - Reservation form that opens WhatsApp with booking details
 - **Contact Information** - Clear restaurant details and phone contact
 - **Accessible Images** - Alt text and fallback handling for menu images
+- **Installable App Icon** - Branded icon and web manifest for supported home-screen installs
 
 ## 🚀 How to Use
 
 1. **Run the backend**: From the project root, use `npm start`
 2. **Open the website**: Browse to `http://localhost:3000`
 3. **Navigate sections**: Use the navigation menu to move between pages
-4. **Review the menu**: See dish details and images on `menu.html`
-5. **Book a table**: Use `reservation.html` to submit a reservation request
+4. **Review the menu**: See dish details and images on `frontend/menu.html`
+5. **Book a table**: Use `frontend/reservation.html` to submit a reservation request
 6. **Admin dashboard**: Visit `http://localhost:3000/admin` and authenticate with the admin credentials
-7. **Contact the restaurant**: Use `contact.html` for location, phone, and hours
+7. **Contact the restaurant**: Use `frontend/contact.html` for location, phone, and hours
 
 ## 🎨 Customization
 
 ### Colors
-Edit the CSS variables in `css/styles.css`:
+Edit the CSS variables in `frontend/css/styles.css`:
 ```css
 :root {
     --primary-color: #0f2438;
@@ -60,7 +57,7 @@ Edit the HTML files to update:
 - Reservation details
 
 ### Images
-Add or replace image files in the `images/` folder and update the menu item image paths in `menu.html`.
+Add or replace image files in `frontend/images/` and update menu image paths in `frontend/menu.html`.
 
 ## 📱 Responsive Breakpoints
 
@@ -97,7 +94,7 @@ When the form is submitted, reservation details are stored on the backend and th
 
 - Admin dashboard is available at `/admin` and the menu manager at `/admin-menu.html`.
 - Both are protected by HTTP Basic Auth and require credentials from the environment.
-- There are no default admin credentials. The server will refuse to start unless `ADMIN_USERNAME` and an `ADMIN_PASSWORD` of at least 16 characters are configured.
+- There are no default admin credentials. Set `ADMIN_USERNAME` and a random `ADMIN_PASSWORD` of at least 24 characters in production (16 locally).
 - Admin API and export requests are authenticated and rate limited. Do not put credentials or API keys in HTML, query strings, or source control.
 
 ## Environment Variables
@@ -129,9 +126,9 @@ OWNER_EMAIL=owner@example.com
 FROM_EMAIL=mamanjies@example.com
 ```
 
-Before deploying, run `database/schema.sql` once using a database owner/migration account. Create a separate runtime account and grant it only `SELECT`, `INSERT`, `UPDATE`, and `DELETE` on the `reservations` and `menu` tables. Do not grant the runtime account `CREATE`, `ALTER`, `DROP`, or global privileges.
+Before deploying, run `backend/database/schema.sql` once using a database owner/migration account. Create a separate runtime account and grant it only `SELECT`, `INSERT`, `UPDATE`, and `DELETE` on the `reservations` and `menu` tables. Do not grant the runtime account `CREATE`, `ALTER`, `DROP`, or global privileges.
 
-Set `NODE_ENV=production` and all required secrets in the Render environment settings. Production startup requires MySQL TLS verification (`DB_SSL=true`) and a TLS Redis URL (`rediss://`); startup fails rather than falling back to unencrypted database access or per-instance rate limits. Use the CA certificate supplied by the database host for `DB_SSL_CA` when required. Configure Redis as a private service and use its TLS connection URL. Set a unique random admin password and rotate any credentials that may have been committed or deployed previously. The API permits the published GitHub Pages origin and local development by default; add any other exact website origins to `ALLOWED_ORIGINS` as a comma-separated list.
+Set `NODE_ENV=production` and the required secrets in Render's environment settings. MySQL TLS with certificate verification is enabled automatically in production; use the database provider's CA in `DB_SSL_CA` if required. Redis is optional for a single Render instance; without `REDIS_URL`, rate limits are local to that instance. To share rate limits across instances, configure Redis with a TLS `rediss://` URL. Set a unique random admin password and rotate any credentials that may have been committed or deployed previously. The API permits the published GitHub Pages origin and local development by default; add any other exact website origins to `ALLOWED_ORIGINS` as a comma-separated list.
 
 ---
 

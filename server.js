@@ -1,4 +1,4 @@
-const express = require('express');
+require('./backend/server');const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
 const dotenv = require('dotenv');
@@ -32,8 +32,8 @@ if (isProduction && !REDIS_URL.startsWith('rediss://')) {
 
 const { ADMIN_USERNAME, ADMIN_PASSWORD } = process.env;
 const minimumAdminPasswordLength = isProduction ? 24 : 16;
-if (!ADMIN_USERNAME || !ADMIN_PASSWORD || ADMIN_PASSWORD.length < minimumAdminPasswordLength) {
-  throw new Error(`Set ADMIN_USERNAME and an ADMIN_PASSWORD with at least ${minimumAdminPasswordLength} characters.`);
+if (!ADMIN_USERNAME || !ADMIN_PASSWORD_RENDER || ADMIN_PASSWORD_RENDER.length < minimumAdminPasswordLength) {
+  throw new Error(`Set ADMIN_USERNAME and an ADMIN_PASSWORD_RENDER with at least ${minimumAdminPasswordLength} characters.`);
 }
 
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'owner@example.com';
@@ -150,7 +150,7 @@ function basicAuth(req, res, next) {
         const password = credentials.slice(separator + 1);
         const expectedUsername = Buffer.from(ADMIN_USERNAME);
         const actualUsername = Buffer.from(username);
-        const expectedPassword = Buffer.from(ADMIN_PASSWORD);
+        const expectedPassword = Buffer.from(ADMIN_PASSWORD_RENDER);
         const actualPassword = Buffer.from(password);
         const usernameMatches = expectedUsername.length === actualUsername.length && crypto.timingSafeEqual(expectedUsername, actualUsername);
         const passwordMatches = expectedPassword.length === actualPassword.length && crypto.timingSafeEqual(expectedPassword, actualPassword);
