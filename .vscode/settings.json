@@ -8,5 +8,9 @@
         "njies",
         "qrcode",
         "Sukuma"
-    ]
+    ],
+    "files.associations": {
+        "**/backend/database/schema.sql": "plaintext"
+    },
+    "python.terminal.useEnvFile": true
 }
